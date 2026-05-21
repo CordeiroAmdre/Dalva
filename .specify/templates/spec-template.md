@@ -78,6 +78,17 @@
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
 
+## Architecture & Design Constraints *(mandatory per constitution)*
+
+Reference: `.specify/memory/constitution.md`
+
+- Technical design MUST include UML diagrams (class and/or sequence) before application code
+- Human approval MUST be obtained on specification and UML before implementation begins
+- Business logic MUST remain isolated from LangChain chain/agent construction
+- LLM access MUST use `BaseChatModel` interfaces; prompts MUST live in dedicated modules
+- Conversation context and embeddings MUST be partitioned by tenant or user identifier
+- API keys and secrets MUST be injected via environment variables, never hardcoded
+
 ## Requirements *(mandatory)*
 
 <!--

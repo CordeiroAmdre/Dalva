@@ -9,7 +9,7 @@ description: "Task list template for feature implementation"
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Tests**: Tests are MANDATORY per constitution. Every implementation MUST include unit and/or integration tests. LangChain/API network calls MUST be mocked in standard test runs.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -45,13 +45,27 @@ description: "Task list template for feature implementation"
   ============================================================================
 -->
 
+## Phase 0: Documentation, UML & Validation Gate
+
+**Purpose**: Constitution-mandated design before application code (see Development Lifecycle)
+
+**⚠️ CRITICAL**: Human approval on spec + UML MUST be obtained before Phase 1 begins
+
+- [ ] T001 Produce technical design document with UML (class and/or sequence diagrams for LLM/VectorDB flows)
+- [ ] T002 Map design to constitution gates (SOLID/YAGNI/DRY, LangChain SoC, multi-tenant, prompt modules)
+- [ ] T003 **STOP — Validation Gate**: Obtain explicit human approval of specification and UML
+
+**Checkpoint**: Approved design only — no application code until gate passes
+
+---
+
 ## Phase 1: Setup (Shared Infrastructure)
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+- [ ] T004 Create project structure per implementation plan
+- [ ] T005 Initialize [language] project with [framework] dependencies
+- [ ] T006 [P] Configure linting, formatting, and type-checking tools (Python type hints mandatory)
 
 ---
 
@@ -63,12 +77,14 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T007 Setup database schema and migrations framework
+- [ ] T008 [P] Implement authentication/authorization framework
+- [ ] T009 [P] Setup API routing and middleware structure
+- [ ] T010 Create base models/entities that all stories depend on
+- [ ] T011 Configure error handling and logging infrastructure
+- [ ] T012 Setup environment configuration and secrets injection (no hardcoded API keys)
+- [ ] T013 [P] Create isolated prompt modules (no inline prompt strings in execution code)
+- [ ] T014 [P] Configure LangChain with `BaseChatModel` abstraction and tenant-scoped context storage
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -80,21 +96,21 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 1 (MANDATORY) ⚠️
 
-> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation. Mock LangChain/API network calls.**
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T015 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T016 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py (with LLM/API mocks)
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
+- [ ] T017 [P] [US1] Create [Entity1] model in src/models/[entity1].py
+- [ ] T018 [P] [US1] Create [Entity2] model in src/models/[entity2].py
+- [ ] T019 [US1] Implement [Service] in src/services/[service].py (depends on T017, T018)
+- [ ] T020 [US1] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T021 [US1] Add validation and error handling
+- [ ] T022 [US1] Add logging for user story 1 operations
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -106,17 +122,17 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 2 (MANDATORY) ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T023 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T024 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py (with LLM/API mocks)
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T023 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T025 [P] [US2] Create [Entity] model in src/models/[entity].py
+- [ ] T026 [US2] Implement [Service] in src/services/[service].py
+- [ ] T027 [US2] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T028 [US2] Integrate with User Story 1 components (if needed)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -128,16 +144,16 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 3 (MANDATORY) ⚠️
 
-- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T029 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T030 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py (with LLM/API mocks)
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T027 [US3] Implement [Service] in src/services/[service].py
-- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T031 [P] [US3] Create [Entity] model in src/models/[entity].py
+- [ ] T032 [US3] Implement [Service] in src/services/[service].py
+- [ ] T033 [US3] Implement [endpoint/feature] in src/[location]/[file].py
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -154,7 +170,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX [P] Documentation updates in docs/
 - [ ] TXXX Code cleanup and refactoring
 - [ ] TXXX Performance optimization across all stories
-- [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
+- [ ] TXXX [P] Additional unit tests in tests/unit/ (LangChain/API calls mocked)
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
 
@@ -164,7 +180,8 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Phase Dependencies
 
-- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Documentation & UML (Phase 0)**: No dependencies - MUST complete and pass human validation gate first
+- **Setup (Phase 1)**: Depends on Phase 0 validation gate - BLOCKS all subsequent work
 - **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
 - **User Stories (Phase 3+)**: All depend on Foundational phase completion
   - User stories can then proceed in parallel (if staffed)
@@ -214,16 +231,18 @@ Task: "Create [Entity2] model in src/models/[entity2].py"
 
 ### MVP First (User Story 1 Only)
 
-1. Complete Phase 1: Setup
-2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
-3. Complete Phase 3: User Story 1
-4. **STOP and VALIDATE**: Test User Story 1 independently
-5. Deploy/demo if ready
+1. Complete Phase 0: Documentation, UML & Validation Gate (human approval required)
+2. Complete Phase 1: Setup
+3. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
+4. Complete Phase 3: User Story 1
+5. **STOP and VALIDATE**: Test User Story 1 independently
+6. Deploy/demo if ready
 
 ### Incremental Delivery
 
-1. Complete Setup + Foundational → Foundation ready
-2. Add User Story 1 → Test independently → Deploy/Demo (MVP!)
+1. Complete Phase 0 → Human approval on spec + UML
+2. Complete Setup + Foundational → Foundation ready
+3. Add User Story 1 → Test independently → Deploy/Demo (MVP!)
 3. Add User Story 2 → Test independently → Deploy/Demo
 4. Add User Story 3 → Test independently → Deploy/Demo
 5. Each story adds value without breaking previous stories

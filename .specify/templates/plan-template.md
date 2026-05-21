@@ -40,7 +40,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Reference: `.specify/memory/constitution.md`
+
+- [ ] **SOLID / YAGNI / DRY**: No speculative abstractions; shared logic extracted; business rules isolated from LangChain orchestration via DI and interfaces
+- [ ] **Documentation & UML**: Technical design includes UML (class diagrams for static structure and/or sequence diagrams for LLM/VectorDB flows) before application code
+- [ ] **Human validation gate**: Specification and UML have explicit human approval before implementation begins
+- [ ] **LangChain architecture**: Corporate logic separated from chains; LLM access via `BaseChatModel` only; prompts in dedicated modules (no inline strings)
+- [ ] **Context & security**: Conversation context and embeddings partitioned by tenant/user ID; API keys and secrets injected via environment only
+- [ ] **Testing**: Unit and/or integration tests planned; LangChain/API network calls mocked in standard test runs
+- [ ] **Python typing**: All application code uses mandatory type hints
 
 ## Project Structure
 
