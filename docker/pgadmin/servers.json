@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "PDV PostgreSQL",
+      "Group": "PDV-AI",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "pdv_ai",
+      "Username": "pdv",
+      "Password": "pdv",
+      "SSLMode": "prefer"
+    }
+  }
+}
