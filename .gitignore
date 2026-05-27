@@ -46,6 +46,9 @@ Thumbs.db
 # uv
 .uv/
 
+# DuckDB data files
+data/
+
 # Development workflow (local only — never commit)
 specs/
 .cursor/

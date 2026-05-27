@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -18,3 +19,13 @@ def clear_settings_cache() -> None:
     yield
     get_settings.cache_clear()
     get_chat_service.cache_clear()
+
+
+@pytest.fixture
+def duckdb_file(tmp_path: Path) -> Path:
+    """Optional live DuckDB file for @pytest.mark.db tests."""
+    from dalva_backend.scripts import init_db
+
+    db_path = tmp_path / "pdv_ai.duckdb"
+    init_db.init_database(db_path)
+    return db_path

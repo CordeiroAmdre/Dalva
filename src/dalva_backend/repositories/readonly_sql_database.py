@@ -31,8 +31,8 @@ class ReadOnlySQLDatabase(SQLDatabase):
         database_repository: DatabaseRepository,
         **kwargs: Any,
     ) -> ReadOnlySQLDatabase:
-        engine_args = kwargs.pop("engine_args", {}) or {}
-        engine = create_engine(database_uri, **engine_args)
+        kwargs.pop("engine_args", None)
+        engine = create_engine(database_uri)
         return cls(engine, database_repository=database_repository, **kwargs)
 
     def run(self, command: str, fetch: str = "all", **kwargs: Any) -> str:

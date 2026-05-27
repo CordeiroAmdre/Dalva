@@ -12,7 +12,8 @@ dependencies = [
     "pydantic-settings>=2.6.0",
     "langchain-community>=0.4.2",
     "sqlalchemy>=2.0.49",
-    "psycopg[binary]>=3.3.4",
+    "duckdb>=1.0",
+    "duckdb-engine>=0.15",
     "sqlparse>=0.5.5",
 ]
 
@@ -33,5 +34,5 @@ packages = ["src/dalva_backend"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 markers = [
-    "db: tests requiring a live PostgreSQL instance (optional, not run by default)",
+    "db: tests requiring a live DuckDB file (optional, not run by default)",
 ]

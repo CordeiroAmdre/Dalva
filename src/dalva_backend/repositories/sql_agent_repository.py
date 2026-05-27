@@ -55,7 +55,6 @@ class SqlAgentRepository:
             include_tables=list(APPROVED_TABLES),
             sample_rows_in_table_info=2,
             view_support=True,
-            engine_args={"pool_pre_ping": True},
         )
 
         toolkit = SQLDatabaseToolkit(db=sql_database, llm=self._llm)
