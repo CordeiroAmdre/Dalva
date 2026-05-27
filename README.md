@@ -1,6 +1,6 @@
-# PDV-AI
+# DALVA
 
-LangChain + FastAPI service for the PDV-AI project. Includes the **Dalva** chat assistant with optional **read-only** PostgreSQL queries for store operations data (products, sales, stores).
+LangChain + FastAPI service for the DALVA project. Includes the **Dalva** chat assistant with optional **read-only** PostgreSQL queries for store operations data (products, sales, stores).
 
 > **Breaking change (v0.3.0)**: The chat endpoint moved from `POST /demo/chat` to **`POST /dalva/chat`**. The old path returns 404.
 
