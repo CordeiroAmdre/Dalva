@@ -58,7 +58,7 @@ def test_generate_reply_uses_sql_agent_when_enabled() -> None:
     settings = Settings(
         openai_api_key="test-key",
         database_queries_enabled=True,
-        database_url="postgresql+psycopg://u:p@localhost/db",
+        database_url="duckdb:///./data/pdv_ai.duckdb",
     )
     sql_agent = MagicMock()
     sql_agent.invoke.return_value = AgentResult(
@@ -84,7 +84,7 @@ def test_uses_database_flag() -> None:
     settings = Settings(
         openai_api_key="test-key",
         database_queries_enabled=True,
-        database_url="postgresql+psycopg://u:p@localhost/db",
+        database_url="duckdb:///./data/pdv_ai.duckdb",
     )
     service = ChatService(
         llm_repository=LLMRepository(FakeChatModel()),

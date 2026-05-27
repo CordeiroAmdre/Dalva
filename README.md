@@ -1,6 +1,6 @@
 # DALVA
 
-LangChain + FastAPI service for the DALVA project. Includes the **Dalva** chat assistant with optional **read-only** PostgreSQL queries for store operations data (products, sales, stores).
+LangChain + FastAPI service for the DALVA project. Includes the **Dalva** chat assistant with optional **read-only** DuckDB queries for store operations data (products, sales, stores).
 
 > **Breaking change (v0.3.0)**: The chat endpoint moved from `POST /demo/chat` to **`POST /dalva/chat`**. The old path returns 404.
 
@@ -9,7 +9,6 @@ LangChain + FastAPI service for the DALVA project. Includes the **Dalva** chat a
 - Python 3.14+
 - [uv](https://docs.astral.sh/uv/)
 - OpenAI API key
-- Docker (optional, for PostgreSQL + seed data)
 
 ## Setup
 
@@ -19,19 +18,30 @@ cp .env.example .env
 # Edit .env: OPENAI_API_KEY=sk-...
 ```
 
-## Run PostgreSQL (optional, for database-backed answers)
+## Initialize DuckDB (optional, for database-backed answers)
+
+Static PDV data (categories, products, stores, **sales**, etc.) lives in **`docker/duckdb/parquet/`** as Parquet files. `init_db` loads everything into DuckDB via `read_parquet()`.
 
 ```bash
-docker compose up -d postgres
-# After adding 03-readonly-role.sql for the first time:
-# docker compose down -v && docker compose up -d postgres
+# Regenerate Parquet files after editing seed data (optional)
+uv run python -m dalva_backend.scripts.build_parquet
+
+# Create the DuckDB database file
+uv run python -m dalva_backend.scripts.init_db
 ```
 
 Enable the SQL agent in `.env`:
 
 ```env
 DATABASE_QUERIES_ENABLED=true
-DATABASE_URL=postgresql+psycopg://pdv_readonly:pdv_readonly@127.0.0.1:5432/pdv_ai
+DATABASE_URL=duckdb:///./data/pdv_ai.duckdb
+```
+
+To reset the database:
+
+```bash
+rm -f data/pdv_ai.duckdb
+uv run python -m dalva_backend.scripts.init_db
 ```
 
 ## Run the API
@@ -50,7 +60,7 @@ curl -s -X POST http://127.0.0.1:8000/dalva/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "Say hello in one short sentence."}' | jq
 
-# Data question (with DATABASE_QUERIES_ENABLED=true and Postgres running)
+# Data question (with DATABASE_QUERIES_ENABLED=true and init_db completed)
 curl -s -X POST http://127.0.0.1:8000/dalva/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "Qual o preço do Leite Integral 1L?"}' | jq
@@ -64,9 +74,9 @@ Response includes `used_database` and `data_sources` when the assistant queried 
 uv run pytest
 ```
 
-Tests mock the language model and SQL agent — no API key or Docker required for the default suite.
+Tests mock the language model and SQL agent — no API key or DuckDB file required for the default suite.
 
-Optional live database tests: `uv run pytest -m db`
+Optional live DuckDB tests: `uv run pytest -m db`
 
 ## Project layout
 
@@ -74,15 +84,28 @@ Optional live database tests: `uv run pytest -m db`
 src/dalva_backend/
 ├── main.py                 # FastAPI app
 ├── config.py               # Settings (.env)
+├── scripts/init_db.py      # DuckDB schema + seed loader
 ├── controllers/            # HTTP layer (routes)
 ├── models/                 # Request/response DTOs (Pydantic)
 ├── services/               # Business logic
 ├── repositories/           # LLM + SQL agent + read-only DB access
 └── prompts/                # LangChain prompt templates
+
+docker/duckdb/
+├── init/01-schema.sql      # Table definitions
+└── parquet/                # Static seed data (Parquet)
+    ├── categorias.parquet
+    ├── produtos.parquet
+    ├── vendas.parquet
+    ├── itens_venda.parquet
+    └── ...
+
+data/pdv_ai.duckdb          # Created by init_db (gitignored)
 ```
 
 ## Feature documentation
 
 - `specs/001-langchain-fastapi-example/` — LangChain + FastAPI starter
 - `specs/002-langchain-db-queries/` — Database query access
-- `specs/003-rename-dalva/` — Dalva identity rename (plan, quickstart, contracts)
+- `specs/003-rename-dalva/` — Dalva identity rename
+- `specs/005-duckdb-database/` — DuckDB storage migration

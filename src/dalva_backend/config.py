@@ -74,13 +74,20 @@ class Settings(BaseSettings):
         return value
 
     @model_validator(mode="after")
-    def database_url_required_when_enabled(self) -> Settings:
-        if self.database_queries_enabled and not self.database_url:
-            msg = (
-                "DATABASE_URL is required when DATABASE_QUERIES_ENABLED=true. "
-                "See .env.example."
-            )
-            raise ValueError(msg)
+    def validate_database_config(self) -> Settings:
+        if self.database_queries_enabled:
+            if not self.database_url:
+                msg = (
+                    "DATABASE_URL is required when DATABASE_QUERIES_ENABLED=true. "
+                    "See .env.example."
+                )
+                raise ValueError(msg)
+            if not self.database_url.startswith("duckdb:///"):
+                msg = (
+                    "DATABASE_URL must use the duckdb:/// scheme "
+                    "(e.g. duckdb:///./data/pdv_ai.duckdb)."
+                )
+                raise ValueError(msg)
         return self
 
 

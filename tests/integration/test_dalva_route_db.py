@@ -60,7 +60,7 @@ def db_enabled_client() -> TestClient:
     settings = Settings(
         openai_api_key="test-key",
         database_queries_enabled=True,
-        database_url="postgresql+psycopg://u:p@localhost/db",
+        database_url="duckdb:///./data/pdv_ai.duckdb",
     )
     service = ChatService(
         llm_repository=LLMRepository(FakeChatModel()),
