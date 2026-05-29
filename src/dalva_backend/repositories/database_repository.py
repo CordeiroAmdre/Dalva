@@ -1,12 +1,15 @@
-"""Read-only SQL execution against PostgreSQL with limits and audit metadata."""
+"""Read-only SQL execution against DuckDB with limits and audit metadata."""
 
 from __future__ import annotations
 
 import logging
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from dataclasses import dataclass, field
 from enum import StrEnum
+
+from decimal import Decimal
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -68,11 +71,24 @@ class DatabaseRepository:
 
     def _get_engine(self) -> Engine:
         if self._engine is None:
-            self._engine = create_engine(
-                self.database_url,
-                pool_pre_ping=True,
-            )
+            self._engine = create_engine(self.database_url)
         return self._engine
+
+    def _run_query(self, sql: str, fetch: str) -> tuple[list, bool]:
+        engine = self._get_engine()
+        with engine.connect() as conn:
+            conn.execute(text(f"SET schema '{self.schema}'"))
+            result = conn.execute(text(sql))
+            if fetch == "one":
+                row = result.fetchone()
+                rows = [row] if row else []
+            else:
+                rows = result.fetchmany(self.max_rows + 1)
+
+        truncated = len(rows) > self.max_rows
+        if truncated:
+            rows = rows[: self.max_rows]
+        return rows, truncated
 
     def execute_readonly(self, sql: str, fetch: str = "all") -> str:
         """Run validated read-only SQL and return a string for the agent."""
@@ -96,41 +112,26 @@ class DatabaseRepository:
             )
             return f"Error: {exc}"
 
-        timeout_ms = self.query_timeout_sec * 1000
         try:
-            engine = self._get_engine()
-            with engine.connect() as conn:
-                conn.execute(text(f"SET statement_timeout = {timeout_ms}"))
-                conn.execute(text(f"SET search_path TO {self.schema}, public"))
-                result = conn.execute(text(sql))
-                if fetch == "one":
-                    row = result.fetchone()
-                    rows = [row] if row else []
-                else:
-                    rows = result.fetchmany(self.max_rows + 1)
-
-            truncated = len(rows) > self.max_rows
-            if truncated:
-                rows = rows[: self.max_rows]
-
-            preview = _format_rows(rows, truncated=truncated)
-            execution.status = QueryStatus.SUCCESS
-            execution.row_count = len(rows)
-            execution.result_preview = preview
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(self._run_query, sql, fetch)
+                rows, truncated = future.result(timeout=self.query_timeout_sec)
+        except FuturesTimeoutError:
+            execution.status = QueryStatus.TIMEOUT
             execution.duration_ms = int((time.perf_counter() - started) * 1000)
+            execution.blocked_reason = "Query timed out"
             self._query_log.append(execution)
             logger.info(
-                "SQL executed",
+                "SQL timed out",
                 extra={
                     "status": execution.status,
-                    "row_count": execution.row_count,
                     "duration_ms": execution.duration_ms,
                 },
             )
-            return preview
+            return "Error: Query timed out"
         except Exception as exc:
             message = str(exc).lower()
-            if "timeout" in message or "canceling statement" in message:
+            if "timeout" in message:
                 execution.status = QueryStatus.TIMEOUT
             else:
                 execution.status = QueryStatus.ERROR
@@ -146,11 +147,36 @@ class DatabaseRepository:
             )
             return f"Error: {exc}"
 
+        preview = _format_rows(rows, truncated=truncated)
+        execution.status = QueryStatus.SUCCESS
+        execution.row_count = len(rows)
+        execution.result_preview = preview
+        execution.duration_ms = int((time.perf_counter() - started) * 1000)
+        self._query_log.append(execution)
+        logger.info(
+            "SQL executed",
+            extra={
+                "status": execution.status,
+                "row_count": execution.row_count,
+                "duration_ms": execution.duration_ms,
+            },
+        )
+        return preview
+
 
 def _format_rows(rows: list, *, truncated: bool) -> str:
     if not rows:
         return "No rows returned."
-    lines = [str(tuple(row)) for row in rows]
+    lines = [str(tuple(_cell_for_preview(cell) for cell in row)) for row in rows]
     if truncated:
         lines.append("(Results truncated to row limit.)")
     return "\n".join(lines)
+
+
+def _cell_for_preview(value: object) -> object:
+    if isinstance(value, Decimal):
+        return float(value)
+    isoformat = getattr(value, "isoformat", None)
+    if callable(isoformat):
+        return isoformat()
+    return value

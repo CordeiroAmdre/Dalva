@@ -1,6 +1,6 @@
 # DALVA
 
-LangChain + FastAPI service for the DALVA project. Includes the **Dalva** chat assistant with optional **read-only** PostgreSQL queries for store operations data (products, sales, stores).
+LangChain + FastAPI service for the DALVA project. Includes the **Dalva** chat assistant with optional **read-only** database queries for store operations data (products, sales, stores), plus a **React chat frontend** for conversational access to your data.
 
 > **Breaking change (v0.3.0)**: The chat endpoint moved from `POST /demo/chat` to **`POST /dalva/chat`**. The old path returns 404.
 
@@ -8,8 +8,8 @@ LangChain + FastAPI service for the DALVA project. Includes the **Dalva** chat a
 
 - Python 3.14+
 - [uv](https://docs.astral.sh/uv/)
+- Node.js 20+ and npm (frontend)
 - OpenAI API key
-- Docker (optional, for PostgreSQL + seed data)
 
 ## Setup
 
@@ -19,19 +19,18 @@ cp .env.example .env
 # Edit .env: OPENAI_API_KEY=sk-...
 ```
 
-## Run PostgreSQL (optional, for database-backed answers)
-
-```bash
-docker compose up -d postgres
-# After adding 03-readonly-role.sql for the first time:
-# docker compose down -v && docker compose up -d postgres
-```
-
-Enable the SQL agent in `.env`:
+Enable database-backed answers in `.env`:
 
 ```env
 DATABASE_QUERIES_ENABLED=true
-DATABASE_URL=postgresql+psycopg://pdv_readonly:pdv_readonly@127.0.0.1:5432/pdv_ai
+DATABASE_URL=duckdb:///./data/pdv.duckdb
+DATABASE_SCHEMA=pdv
+```
+
+Initialize DuckDB (schema + seed):
+
+```bash
+uv run python -m dalva_backend.scripts.init_db
 ```
 
 ## Run the API
@@ -42,47 +41,65 @@ uv run uvicorn dalva_backend.main:app --reload --host 127.0.0.1 --port 8000
 
 Interactive docs: http://127.0.0.1:8000/docs
 
-## Try the Dalva chat endpoint
+## Run the chat frontend
 
 ```bash
-# General question (LLM only when DB disabled)
-curl -s -X POST http://127.0.0.1:8000/dalva/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Say hello in one short sentence."}' | jq
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
 
-# Data question (with DATABASE_QUERIES_ENABLED=true and Postgres running)
+Open: http://localhost:5173
+
+See [specs/006-dalva-chat-frontend/quickstart.md](specs/006-dalva-chat-frontend/quickstart.md) for the full walkthrough.
+
+## Try the Dalva chat endpoint (curl)
+
+```bash
 curl -s -X POST http://127.0.0.1:8000/dalva/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "Qual o preço do Leite Integral 1L?"}' | jq
 ```
 
-Response includes `used_database` and `data_sources` when the assistant queried PDV data.
+Response includes `reply`, `model`, `used_database`, `data_sources`, and optional `chart` when query results support visualization.
 
 ## Run tests
+
+Backend:
 
 ```bash
 uv run pytest
 ```
 
-Tests mock the language model and SQL agent — no API key or Docker required for the default suite.
+Frontend:
 
-Optional live database tests: `uv run pytest -m db`
+```bash
+cd frontend && npm test
+```
+
+Tests mock the language model, SQL agent, and HTTP API — no API key required for the default suites.
 
 ## Project layout
 
 ```text
+frontend/
+├── src/
+│   ├── pages/ChatPage.tsx    # Ant Design chat UI + ECharts
+│   ├── hooks/useChatSession.ts
+│   └── services/dalvaApi.ts
+
 src/dalva_backend/
-├── main.py                 # FastAPI app
-├── config.py               # Settings (.env)
-├── controllers/            # HTTP layer (routes)
-├── models/                 # Request/response DTOs (Pydantic)
-├── services/               # Business logic
-├── repositories/           # LLM + SQL agent + read-only DB access
-└── prompts/                # LangChain prompt templates
+├── main.py                   # FastAPI app + CORS
+├── controllers/              # HTTP layer (routes)
+├── models/                   # Request/response DTOs (Pydantic)
+├── services/                 # ChatService, ChartBuilder
+├── repositories/             # LLM + SQL agent + read-only DB access
+└── prompts/                  # LangChain prompt templates
 ```
 
 ## Feature documentation
 
-- `specs/001-langchain-fastapi-example/` — LangChain + FastAPI starter
+- `specs/006-dalva-chat-frontend/` — React chat frontend (plan, quickstart, contracts)
 - `specs/002-langchain-db-queries/` — Database query access
-- `specs/003-rename-dalva/` — Dalva identity rename (plan, quickstart, contracts)
+- `specs/003-rename-dalva/` — Dalva identity rename

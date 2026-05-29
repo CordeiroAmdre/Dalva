@@ -8,6 +8,7 @@ from langchain_core.runnables import RunnableConfig
 
 from dalva_backend.config import Settings
 from dalva_backend.models.chat import AgentResult
+from dalva_backend.repositories.database_repository import QueryExecution, QueryStatus
 from dalva_backend.repositories.llm_repository import LLMRepository
 from dalva_backend.services.chat_service import ChatService
 
@@ -52,6 +53,7 @@ def test_generate_reply_returns_mocked_content() -> None:
     assert response.model == settings.openai_model
     assert response.used_database is False
     assert response.data_sources == []
+    assert response.chart is None
 
 
 def test_generate_reply_uses_sql_agent_when_enabled() -> None:
@@ -66,10 +68,20 @@ def test_generate_reply_uses_sql_agent_when_enabled() -> None:
         used_database=True,
         data_sources=["pdv.vendas"],
     )
+    sql_agent.get_query_log.return_value = [
+        QueryExecution(
+            sql="SELECT category, total FROM pdv.vendas",
+            status=QueryStatus.SUCCESS,
+            row_count=2,
+            result_preview="('Bebidas', 300)\n('Padaria', 200)",
+        )
+    ]
+    chart_option_repository = MagicMock()
     service = ChatService(
         llm_repository=LLMRepository(FakeChatModel()),
         settings=settings,
         sql_agent_repository=sql_agent,
+        chart_option_repository=chart_option_repository,
     )
 
     response = service.generate_reply("Sales yesterday?")
@@ -77,6 +89,13 @@ def test_generate_reply_uses_sql_agent_when_enabled() -> None:
     assert response.reply == "Sales total: 500"
     assert response.used_database is True
     assert response.data_sources == ["pdv.vendas"]
+    assert response.chart is not None
+    series = response.chart.option["series"][0]
+    assert series["type"] in {"bar", "pie", "line"}
+    if series["type"] == "pie":
+        assert len(series["data"]) == 2
+    else:
+        assert len(response.chart.option["xAxis"]["data"]) == 2
     sql_agent.invoke.assert_called_once_with("Sales yesterday?")
 
 
