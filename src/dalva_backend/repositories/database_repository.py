@@ -9,6 +9,8 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeou
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from decimal import Decimal
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
@@ -165,7 +167,16 @@ class DatabaseRepository:
 def _format_rows(rows: list, *, truncated: bool) -> str:
     if not rows:
         return "No rows returned."
-    lines = [str(tuple(row)) for row in rows]
+    lines = [str(tuple(_cell_for_preview(cell) for cell in row)) for row in rows]
     if truncated:
         lines.append("(Results truncated to row limit.)")
     return "\n".join(lines)
+
+
+def _cell_for_preview(value: object) -> object:
+    if isinstance(value, Decimal):
+        return float(value)
+    isoformat = getattr(value, "isoformat", None)
+    if callable(isoformat):
+        return isoformat()
+    return value

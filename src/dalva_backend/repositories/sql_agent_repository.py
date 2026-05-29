@@ -13,7 +13,11 @@ from langchain_core.language_models import BaseLanguageModel
 from dalva_backend.config import Settings
 from dalva_backend.models.chat import AgentResult
 from dalva_backend.prompts.sql_agent import APPROVED_TABLES, SQL_AGENT_PREFIX
-from dalva_backend.repositories.database_repository import DatabaseRepository, QueryStatus
+from dalva_backend.repositories.database_repository import (
+    DatabaseRepository,
+    QueryExecution,
+    QueryStatus,
+)
 from dalva_backend.repositories.llm_repository import create_chat_model
 from dalva_backend.repositories.readonly_sql_database import ReadOnlySQLDatabase
 
@@ -102,6 +106,9 @@ class SqlAgentRepository:
             data_sources=data_sources,
             iterations=len(steps),
         )
+
+    def get_query_log(self) -> list[QueryExecution]:
+        return self._database_repository.query_log
 
 
 def _steps_used_database(steps: list[Any]) -> bool:

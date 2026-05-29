@@ -49,6 +49,10 @@ Thumbs.db
 # DuckDB data files
 data/
 
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
 # Development workflow (local only — never commit)
 specs/
 .cursor/

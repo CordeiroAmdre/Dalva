@@ -1,9 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from dalva_backend.repositories.database_repository import DatabaseRepository, QueryStatus
-
 
 DUCKDB_URL = "duckdb:///./data/pdv_ai.duckdb"
 
@@ -62,22 +59,17 @@ def test_execute_readonly_times_out(mock_create_engine: MagicMock) -> None:
         database_url=DUCKDB_URL,
         query_timeout_sec=1,
     )
-    with patch.object(
-        DatabaseRepository,
-        "_run_query",
-        side_effect=TimeoutError("slow"),
-    ):
-        with patch(
-            "dalva_backend.repositories.database_repository.ThreadPoolExecutor"
-        ) as mock_executor:
-            mock_future = MagicMock()
-            mock_future.result.side_effect = __import__(
-                "concurrent.futures", fromlist=["TimeoutError"]
-            ).TimeoutError()
-            mock_executor.return_value.__enter__.return_value.submit.return_value = (
-                mock_future
-            )
-            result = repo.execute_readonly("SELECT 1")
+    with patch(
+        "dalva_backend.repositories.database_repository.ThreadPoolExecutor"
+    ) as mock_executor:
+        mock_future = MagicMock()
+        mock_future.result.side_effect = __import__(
+            "concurrent.futures", fromlist=["TimeoutError"]
+        ).TimeoutError()
+        mock_executor.return_value.__enter__.return_value.submit.return_value = (
+            mock_future
+        )
+        result = repo.execute_readonly("SELECT 1")
 
     assert "timed out" in result.lower()
     assert repo.query_log[-1].status == QueryStatus.TIMEOUT
