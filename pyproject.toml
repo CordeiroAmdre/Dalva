@@ -34,5 +34,5 @@ packages = ["src/dalva_backend"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 markers = [
-    "db: tests requiring a live PostgreSQL instance (optional, not run by default)",
+    "db: tests requiring a live DuckDB file (optional, not run by default)",
 ]

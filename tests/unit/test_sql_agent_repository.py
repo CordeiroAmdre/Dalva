@@ -17,7 +17,7 @@ def test_invoke_returns_agent_result() -> None:
     settings = Settings(
         openai_api_key="test-key",
         database_queries_enabled=True,
-        database_url="postgresql+psycopg://u:p@localhost/db",
+        database_url="duckdb:///./data/pdv_ai.duckdb",
     )
     db_repo = MagicMock()
     db_repo.data_sources.return_value = ["pdv.vendas"]

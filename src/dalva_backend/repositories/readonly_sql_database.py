@@ -31,9 +31,9 @@ class ReadOnlySQLDatabase(SQLDatabase):
         database_repository: DatabaseRepository,
         **kwargs: Any,
     ) -> ReadOnlySQLDatabase:
-        engine_args = kwargs.pop("engine_args", {}) or {}
+        kwargs.pop("engine_args", None)
         kwargs.setdefault("lazy_table_reflection", True)
-        engine = create_engine(database_uri, **engine_args)
+        engine = create_engine(database_uri)
         return cls(engine, database_repository=database_repository, **kwargs)
 
     def get_table_info(
