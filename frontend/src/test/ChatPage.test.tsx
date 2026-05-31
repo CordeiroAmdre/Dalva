@@ -1,23 +1,57 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ChatPage from "../pages/ChatPage";
+import { MESSAGE_MAX_LENGTH } from "../types/chat";
 
 vi.mock("echarts-for-react", () => ({
   default: () => <div data-testid="mock-chart" />,
 }));
 
+function getComposerInput() {
+  return screen.getByRole("textbox");
+}
+
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
 });
 
 describe("ChatPage", () => {
+  beforeEach(() => {
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query.includes("max-width: 991px") ? false : false,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+  });
+
+  describe("idle state (US1)", () => {
+    it("shows empty state, subtitle, and char counter", () => {
+      render(<ChatPage />);
+
+      expect(screen.getByTestId("chat-idle-state")).toBeInTheDocument();
+      expect(
+        screen.getByText("Envie uma pergunta para iniciar a conversa."),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Faça perguntas sobre produtos, vendas, lojas e pagamentos/i),
+      ).toBeInTheDocument();
+      expect(screen.getByTestId("char-counter")).toHaveTextContent(
+        `0/${MESSAGE_MAX_LENGTH} caracteres restantes`,
+      );
+      expect(screen.getByTestId("chat-composer-idle")).toBeInTheDocument();
+    });
+  });
+
   it("sends a message and shows assistant reply in order", async () => {
     const user = userEvent.setup();
     render(<ChatPage />);
 
-    await user.type(screen.getByLabelText("Mensagem do chat"), "Olá Dalva");
+    await user.type(getComposerInput(), "Olá Dalva");
     await user.click(screen.getByRole("button", { name: /enviar mensagem/i }));
 
     await waitFor(() => {
@@ -26,13 +60,15 @@ describe("ChatPage", () => {
     await waitFor(() => {
       expect(screen.getByText(/Um PDV é um ponto de venda/i)).toBeInTheDocument();
     });
+    expect(screen.queryByTestId("chat-idle-state")).not.toBeInTheDocument();
+    expect(screen.getByTestId("chat-composer-active")).toBeInTheDocument();
   });
 
   it("shows database transparency tags for data-backed answers", async () => {
     const user = userEvent.setup();
     render(<ChatPage />);
 
-    await user.type(screen.getByLabelText("Mensagem do chat"), "Vendas pdv hoje");
+    await user.type(getComposerInput(), "Vendas pdv hoje");
     await user.click(screen.getByRole("button", { name: /enviar mensagem/i }));
 
     await waitFor(() => {
@@ -46,15 +82,13 @@ describe("ChatPage", () => {
     const user = userEvent.setup();
     render(<ChatPage />);
 
-    await user.type(
-      screen.getByLabelText("Mensagem do chat"),
-      "Vendas pdv por categoria",
-    );
+    await user.type(getComposerInput(), "Vendas pdv por categoria");
     await user.click(screen.getByRole("button", { name: /enviar mensagem/i }));
 
     await waitFor(() => {
       expect(screen.getByTestId("mock-chart")).toBeInTheDocument();
     });
+    expect(screen.getByTestId("embedded-chart")).toBeInTheDocument();
   });
 
   it("shows validation feedback for empty messages", async () => {
@@ -72,19 +106,34 @@ describe("ChatPage", () => {
     const user = userEvent.setup();
     render(<ChatPage />);
 
-    await user.type(screen.getByLabelText("Mensagem do chat"), "Primeira pergunta");
+    await user.type(getComposerInput(), "Primeira pergunta");
     await user.click(screen.getByRole("button", { name: /enviar mensagem/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Primeira pergunta")).toBeInTheDocument();
     });
 
-    await user.type(screen.getByLabelText("Mensagem do chat"), "Simular erro 502");
+    await user.type(getComposerInput(), "Simular erro 502");
     await user.click(screen.getByRole("button", { name: /enviar mensagem/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Model provider error")).toBeInTheDocument();
     });
     expect(screen.getByText("Primeira pergunta")).toBeInTheDocument();
+  });
+
+  it("shows loading indicator while awaiting reply", async () => {
+    const user = userEvent.setup();
+    render(<ChatPage />);
+
+    await user.type(getComposerInput(), "Olá Dalva");
+    await user.click(screen.getByRole("button", { name: /enviar mensagem/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("chat-loading")).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.queryByTestId("chat-loading")).not.toBeInTheDocument();
+    });
   });
 });
