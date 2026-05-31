@@ -1,5 +1,6 @@
 import type { AssistantChatMessage } from "../../types/chat";
 import { isRenderableChart } from "../../types/chat";
+import { AssistantMarkdown } from "./AssistantMarkdown";
 import { AssistantMetaTags } from "./AssistantMetaTags";
 import { EmbeddedChart } from "./EmbeddedChart";
 import { MaterialIcon } from "./MaterialIcon";
@@ -16,7 +17,7 @@ export function AssistantBubble({ message }: AssistantBubbleProps) {
       </div>
       <div className="assistant-content">
         <div className="assistant-bubble">
-          <p className="assistant-bubble__text">{message.reply}</p>
+          <AssistantMarkdown content={message.reply} />
           {isRenderableChart(message.chart) ? (
             <EmbeddedChart chart={message.chart} />
           ) : null}

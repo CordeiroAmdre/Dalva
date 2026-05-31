@@ -3,9 +3,10 @@ import type { ReactNode } from "react";
 import { ChatIdleHero } from "./ChatIdleHero";
 import { ChatIdleState } from "./ChatIdleState";
 
+/** @deprecated Layout absorbed into ChatShell — kept for reference only */
 interface ChatIdleHomeProps {
   composer: ReactNode;
-  onStartAnalysis: () => void;
+  onStartAnalysis?: () => void;
 }
 
 export function ChatIdleHome({ composer, onStartAnalysis }: ChatIdleHomeProps) {

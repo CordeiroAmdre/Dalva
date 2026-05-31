@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
+import "../theme/dalvaTokens.css";
 import { server } from "./mswServer";
 
 Object.defineProperty(window, "matchMedia", {
@@ -16,6 +17,8 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => false,
   }),
 });
+
+HTMLElement.prototype.scrollIntoView = () => undefined;
 
 class ResizeObserverMock {
   observe() {

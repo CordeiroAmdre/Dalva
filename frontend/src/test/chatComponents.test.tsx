@@ -1,3 +1,4 @@
+import userEvent from "@testing-library/user-event";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -6,12 +7,47 @@ vi.mock("echarts-for-react", () => ({
 }));
 
 import { ChatComposer } from "../components/chat/ChatComposer";
+import { ChatIdleHero } from "../components/chat/ChatIdleHero";
+import { ChatIdleState } from "../components/chat/ChatIdleState";
 import { ChatThread } from "../components/chat/ChatThread";
 import { MESSAGE_MAX_LENGTH } from "../types/chat";
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+describe("ChatIdleState", () => {
+  it("renders start-analysis CTA and calls handler on click", async () => {
+    const user = userEvent.setup();
+    const onStart = vi.fn();
+
+    render(<ChatIdleState onStartAnalysis={onStart} />);
+    expect(screen.getByTestId("chat-idle-cta")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("chat-idle-cta"));
+    expect(onStart).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("ChatIdleHero", () => {
+  it("renders compact variant with same title", () => {
+    render(<ChatIdleHero variant="compact" />);
+    expect(screen.getByTestId("chat-idle-hero")).toHaveAttribute("data-variant", "compact");
+    expect(screen.getByText("Dalva")).toBeInTheDocument();
+    expect(screen.getByText("Chat com seus dados")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Faça perguntas sobre produtos, vendas, lojas e pagamentos/i),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("transition tokens", () => {
+  it("defines reduced-motion transition duration override", () => {
+    expect(
+      getComputedStyle(document.documentElement).getPropertyValue("--chat-transition-duration").trim(),
+    ).toBe("300ms");
+  });
 });
 
 describe("ChatComposer", () => {
@@ -81,6 +117,33 @@ describe("ChatThread scroll behavior", () => {
       <ChatThread messages={[userMessage, assistantMessage]} isLoading={false} />,
     );
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("AssistantMarkdown", () => {
+  it("renders bold text and bullet lists from markdown", () => {
+    render(
+      <ChatThread
+        messages={[
+          {
+            kind: "assistant",
+            id: "a-md",
+            reply: "Ranking:\n\n- **Mini Mercado Sul**\n- **Super PDV Norte**",
+            model: "gpt-4o-mini",
+            usedDatabase: true,
+            dataSources: ["pdv.vendas"],
+            chart: null,
+            receivedAt: new Date().toISOString(),
+          },
+        ]}
+        isLoading={false}
+      />,
+    );
+
+    expect(screen.getByTestId("assistant-markdown")).toBeInTheDocument();
+    expect(screen.getByText("Mini Mercado Sul").tagName).toBe("STRONG");
+    expect(screen.getByText("Super PDV Norte").tagName).toBe("STRONG");
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
 });
 

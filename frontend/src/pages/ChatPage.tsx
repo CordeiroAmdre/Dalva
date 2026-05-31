@@ -1,16 +1,15 @@
 import { useRef, useState } from "react";
 import { Alert } from "antd";
 
-import { useChatSession } from "../hooks/useChatSession";
 import { ChatComposer } from "../components/chat/ChatComposer";
-import { ChatHeader } from "../components/chat/ChatHeader";
-import { ChatIdleHome } from "../components/chat/ChatIdleHome";
+import type { IdlePhase } from "../components/chat/ChatShell";
 import { ChatShell } from "../components/chat/ChatShell";
-import { ChatThread } from "../components/chat/ChatThread";
+import { useChatSession } from "../hooks/useChatSession";
 
 export default function ChatPage() {
   const { messages, isLoading, error, inputError, sendMessage } = useChatSession();
   const [draft, setDraft] = useState("");
+  const [idlePhase, setIdlePhase] = useState<IdlePhase>("home");
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const isIdle = messages.length === 0;
 
@@ -20,9 +19,12 @@ export default function ChatPage() {
     await sendMessage(currentDraft);
   };
 
-  const focusComposer = () => {
-    composerRef.current?.focus();
-    document.getElementById("chat-composer-idle")?.focus();
+  const handleStartAnalysis = () => {
+    setIdlePhase("entry");
+    window.requestAnimationFrame(() => {
+      composerRef.current?.focus();
+      document.getElementById("chat-composer-idle")?.focus();
+    });
   };
 
   const composer = (
@@ -37,40 +39,24 @@ export default function ChatPage() {
     />
   );
 
-  if (isIdle) {
-    return (
-      <>
-        {error ? (
-          <Alert
-            type="error"
-            showIcon
-            message={error.message}
-            className="chat-error-alert chat-error-alert--idle-home"
-          />
-        ) : null}
-        <ChatIdleHome composer={composer} onStartAnalysis={focusComposer} />
-      </>
-    );
-  }
-
   return (
     <ChatShell
+      mode={isIdle ? "idle" : "active"}
+      idlePhase={idlePhase}
+      onStartAnalysis={handleStartAnalysis}
       composer={composer}
+      messages={messages}
+      isLoading={isLoading}
       errorAlert={
         error ? (
           <Alert
             type="error"
             showIcon
             message={error.message}
-            className="chat-error-alert"
+            className={isIdle ? "chat-error-alert chat-error-alert--idle-home" : "chat-error-alert"}
           />
         ) : null
       }
-    >
-      <ChatHeader />
-      <main className="chat-main chat-main--active" data-testid="chat-main">
-        <ChatThread messages={messages} isLoading={isLoading} />
-      </main>
-    </ChatShell>
+    />
   );
 }

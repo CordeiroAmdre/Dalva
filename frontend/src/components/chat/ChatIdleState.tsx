@@ -19,6 +19,7 @@ export function ChatIdleState({ onStartAnalysis }: ChatIdleStateProps) {
         type="button"
         className="chat-idle__cta"
         data-testid="chat-idle-cta"
+        aria-label="Começar nova análise"
         onClick={onStartAnalysis}
       >
         <MaterialIcon name="auto_awesome" size={18} filled />
