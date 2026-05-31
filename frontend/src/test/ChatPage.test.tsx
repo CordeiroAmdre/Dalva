@@ -30,9 +30,12 @@ describe("ChatPage", () => {
   });
 
   describe("idle state (US1)", () => {
-    it("shows empty state, subtitle, and char counter", () => {
+    it("shows empty state, hero, and char counter", () => {
       render(<ChatPage />);
 
+      expect(screen.getByTestId("chat-idle-home")).toBeInTheDocument();
+      expect(screen.getByTestId("chat-idle-hero")).toBeInTheDocument();
+      expect(screen.getByText("Assistente IA")).toBeInTheDocument();
       expect(screen.getByTestId("chat-idle-state")).toBeInTheDocument();
       expect(
         screen.getByText("Envie uma pergunta para iniciar a conversa."),
@@ -40,10 +43,16 @@ describe("ChatPage", () => {
       expect(
         screen.getByText(/Faça perguntas sobre produtos, vendas, lojas e pagamentos/i),
       ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Dalva analisa seus dados em tempo real/i),
+      ).toBeInTheDocument();
       expect(screen.getByTestId("char-counter")).toHaveTextContent(
-        `0/${MESSAGE_MAX_LENGTH} caracteres restantes`,
+        `0/${MESSAGE_MAX_LENGTH}`,
       );
+      expect(screen.getByTestId("chat-idle-welcome-card")).toBeInTheDocument();
+      expect(screen.getByTestId("chat-idle-composer-card")).toBeInTheDocument();
       expect(screen.getByTestId("chat-composer-idle")).toBeInTheDocument();
+      expect(screen.getByTestId("chat-idle-cta")).toBeInTheDocument();
     });
   });
 
@@ -60,7 +69,7 @@ describe("ChatPage", () => {
     await waitFor(() => {
       expect(screen.getByText(/Um PDV é um ponto de venda/i)).toBeInTheDocument();
     });
-    expect(screen.queryByTestId("chat-idle-state")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("chat-idle-home")).not.toBeInTheDocument();
     expect(screen.getByTestId("chat-composer-active")).toBeInTheDocument();
   });
 

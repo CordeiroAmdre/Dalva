@@ -2,23 +2,23 @@ import type { ThemeConfig } from "antd";
 
 export const dalvaTheme: ThemeConfig = {
   token: {
-    colorPrimary: "#8a00de",
-    colorInfo: "#8a00de",
+    colorPrimary: "#6b38d4",
+    colorInfo: "#6b38d4",
     colorBgLayout: "#f8f9ff",
     colorBgContainer: "#ffffff",
-    colorText: "#0b1c30",
-    colorTextSecondary: "#4e4355",
-    colorBorder: "#d1c1d7",
-    borderRadius: 8,
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+    colorText: "#121c2a",
+    colorTextSecondary: "#494454",
+    colorBorder: "#cbc3d7",
+    borderRadius: 12,
+    fontFamily: "Manrope, -apple-system, BlinkMacSystemFont, sans-serif",
   },
   components: {
     Button: {
       primaryColor: "#ffffff",
     },
     Input: {
-      activeBorderColor: "#8a00de",
-      hoverBorderColor: "#a635fb",
+      activeBorderColor: "#6b38d4",
+      hoverBorderColor: "#8455ef",
     },
   },
 };

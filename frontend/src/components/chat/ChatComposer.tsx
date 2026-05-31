@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, Ref } from "react";
 import { Button, Input } from "antd";
 
 import { MESSAGE_MAX_LENGTH } from "../../types/chat";
@@ -13,6 +13,7 @@ interface ChatComposerProps {
   onSend: () => void;
   isLoading: boolean;
   inputError: string | null;
+  inputRef?: Ref<HTMLTextAreaElement>;
 }
 
 export function ChatComposer({
@@ -22,10 +23,11 @@ export function ChatComposer({
   onSend,
   isLoading,
   inputError,
+  inputRef,
 }: ChatComposerProps) {
   const charCount = draft.length;
   const isNearLimit = charCount >= MESSAGE_MAX_LENGTH * 0.9;
-  const counterText = `${charCount}/${MESSAGE_MAX_LENGTH} caracteres restantes`;
+  const counterText = `${charCount}/${MESSAGE_MAX_LENGTH}`;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (!event.shiftKey && event.key === "Enter") {
@@ -36,25 +38,29 @@ export function ChatComposer({
 
   if (variant === "idle") {
     return (
-      <div className="chat-composer chat-composer--idle" data-testid="chat-composer-idle">
-        <TextArea
-          value={draft}
-          onChange={(event) => onDraftChange(event.target.value)}
-          placeholder="Ex.: Qual foi o valor total de vendas ontem?"
-          aria-label="Digite sua pergunta"
-          autoSize={{ minRows: 2, maxRows: 5 }}
-          maxLength={MESSAGE_MAX_LENGTH}
-          disabled={isLoading}
-          onKeyDown={handleKeyDown}
-          className="chat-composer__textarea"
-        />
-        <div className="chat-composer__footer">
-          <span
-            className={`chat-composer__counter ${isNearLimit ? "chat-composer__counter--warning" : ""}`}
-            data-testid="char-counter"
-          >
-            {inputError ?? counterText}
-          </span>
+      <div className="chat-composer chat-composer--idle-home" data-testid="chat-composer-idle">
+        <div className="chat-composer__idle-row">
+          <div className="chat-composer__idle-input-wrap">
+            <TextArea
+              id="chat-composer-idle"
+              ref={inputRef}
+              value={draft}
+              onChange={(event) => onDraftChange(event.target.value)}
+              placeholder="Ex.: Qual foi o valor total de vendas ontem?"
+              aria-label="Digite sua pergunta"
+              autoSize={{ minRows: 1, maxRows: 5 }}
+              maxLength={MESSAGE_MAX_LENGTH}
+              disabled={isLoading}
+              onKeyDown={handleKeyDown}
+              className="chat-composer__textarea chat-composer__textarea--idle-home"
+            />
+            <span
+              className={`chat-composer__counter-inline ${isNearLimit ? "chat-composer__counter--warning" : ""}`}
+              data-testid="char-counter"
+            >
+              {inputError ?? counterText}
+            </span>
+          </div>
           <Button
             type="primary"
             shape="circle"
@@ -62,9 +68,13 @@ export function ChatComposer({
             aria-label="Enviar mensagem"
             loading={isLoading}
             onClick={() => void onSend()}
-            icon={<MaterialIcon name="send" filled size={20} aria-hidden={false} />}
+            className="chat-composer__send-btn--gradient"
+            icon={<MaterialIcon name="send" filled size={22} aria-hidden={false} />}
           />
         </div>
+        <p className="chat-composer__disclaimer">
+          A inteligência artificial pode cometer erros. Verifique informações importantes.
+        </p>
       </div>
     );
   }
@@ -73,6 +83,7 @@ export function ChatComposer({
     <div className="chat-composer chat-composer--active" data-testid="chat-composer-active">
       <div className="chat-composer__input-wrap">
         <TextArea
+          ref={inputRef}
           value={draft}
           onChange={(event) => onDraftChange(event.target.value)}
           placeholder="Pergunte sobre suas vendas, estoque ou desempenho..."
