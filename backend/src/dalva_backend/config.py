@@ -3,10 +3,19 @@ from functools import lru_cache
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from dalva_backend.paths import backend_dir, find_repo_root, resolve_duckdb_url
+
+_REPO_ROOT = find_repo_root()
+_BACKEND_DIR = backend_dir()
+_ENV_FILES = (
+    _BACKEND_DIR / ".env",
+    _REPO_ROOT / ".env",
+)
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_ENV_FILES,
         env_file_encoding="utf-8",
         extra="ignore",
         populate_by_name=True,
@@ -37,7 +46,10 @@ class Settings(BaseSettings):
     @classmethod
     def api_key_must_be_non_empty(cls, value: str) -> str:
         if not value or not value.strip():
-            msg = "OPENAI_API_KEY is required. Copy .env.example to .env and set your key."
+            msg = (
+                "OPENAI_API_KEY is required. Copy backend/.env.example to "
+                "backend/.env (or set at repo root .env) and set your key."
+            )
             raise ValueError(msg)
         return value.strip()
 
@@ -75,17 +87,23 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_database_config(self) -> Settings:
+        if self.database_url:
+            object.__setattr__(
+                self,
+                "database_url",
+                resolve_duckdb_url(self.database_url),
+            )
         if self.database_queries_enabled:
             if not self.database_url:
                 msg = (
                     "DATABASE_URL is required when DATABASE_QUERIES_ENABLED=true. "
-                    "See .env.example."
+                    "See backend/.env.example."
                 )
                 raise ValueError(msg)
             if not self.database_url.startswith("duckdb:///"):
                 msg = (
                     "DATABASE_URL must use the duckdb:/// scheme "
-                    "(e.g. duckdb:///./data/pdv_ai.duckdb)."
+                    "(e.g. duckdb:///../data/pdv_ai.duckdb)."
                 )
                 raise ValueError(msg)
         return self

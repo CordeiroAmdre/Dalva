@@ -29,13 +29,20 @@ class ChartOptionRepository:
         self,
         message: str,
         query_log: list[QueryExecution],
+        *,
+        requested_chart_type: str | None = None,
     ) -> ChartSpec | None:
         query_data = _format_query_log(query_log)
         if not query_data:
             return None
+        type_hint = requested_chart_type or "infer from the user message"
         try:
             result = self._chain.invoke(
-                {"message": message, "query_data": query_data},
+                {
+                    "message": message,
+                    "query_data": query_data,
+                    "requested_chart_type": type_hint,
+                },
             )
         except Exception:
             logger.exception("Chart option LLM invocation failed")
@@ -51,14 +58,17 @@ class ChartOptionRepository:
 
 
 def _format_query_log(query_log: list[QueryExecution]) -> str:
-    blocks: list[str] = []
+    last_success: QueryExecution | None = None
     for entry in query_log:
-        if entry.status != QueryStatus.SUCCESS:
-            continue
-        blocks.append(
-            f"SQL: {entry.sql}\nRows: {entry.row_count}\nPreview:\n{entry.result_preview}"
-        )
-    return "\n\n---\n\n".join(blocks)
+        if entry.status == QueryStatus.SUCCESS:
+            last_success = entry
+    if last_success is None:
+        return ""
+    return (
+        f"SQL: {last_success.sql}\n"
+        f"Rows: {last_success.row_count}\n"
+        f"Preview:\n{last_success.result_preview}"
+    )
 
 
 def _extract_content(result: object) -> str:

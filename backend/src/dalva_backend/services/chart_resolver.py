@@ -20,7 +20,7 @@ _CHART_TYPE_PATTERN = re.compile(
     r"\b("
     r"boxplot|box\s*plot|"
     r"scatter|dispers[aã]o|"
-    r"heatmap|"
+    r"heatmap|mapa\s+de\s+calor|"
     r"pie|pizza|"
     r"bar|barras|histograma|"
     r"line|linha|"
@@ -36,6 +36,7 @@ _CHART_TYPE_ALIASES: dict[str, str] = {
     "dispersão": "scatter",
     "dispersao": "scatter",
     "heatmap": "heatmap",
+    "mapadecalor": "heatmap",
     "pie": "pie",
     "pizza": "pie",
     "bar": "bar",
@@ -58,8 +59,11 @@ def resolve_chart(
     query_log: list[QueryExecution],
     chart_option_repository: ChartOptionRepository,
 ) -> ChartSpec | None:
-    heuristic = ChartBuilder.from_query_log(query_log)
+    if count_distinct_requested_chart_types(message) > 1:
+        return None
+
     requested_type = detect_requested_chart_type(message)
+    heuristic = ChartBuilder.from_query_log(query_log)
 
     if heuristic is not None and requested_type is not None:
         actual_type = _series_type(heuristic)
@@ -69,24 +73,47 @@ def resolve_chart(
     if heuristic is not None:
         return heuristic
 
-    if not message_requests_visualization(message):
+    if not should_attempt_chart(message):
         return None
     if not _has_successful_query(query_log):
         return None
 
-    return chart_option_repository.generate(message, query_log)
+    return chart_option_repository.generate(
+        message,
+        query_log,
+        requested_chart_type=requested_type,
+    )
 
 
 def message_requests_visualization(message: str) -> bool:
     return _VISUALIZATION_PATTERN.search(message) is not None
 
 
+def iter_requested_chart_types(message: str) -> set[str]:
+    types: set[str] = set()
+    for match in _CHART_TYPE_PATTERN.finditer(message):
+        token = match.group(1).lower().replace(" ", "")
+        canonical = _CHART_TYPE_ALIASES.get(token, token)
+        types.add(canonical)
+    return types
+
+
+def count_distinct_requested_chart_types(message: str) -> int:
+    return len(iter_requested_chart_types(message))
+
+
 def detect_requested_chart_type(message: str) -> str | None:
-    match = _CHART_TYPE_PATTERN.search(message)
-    if match is None:
-        return None
-    token = match.group(1).lower().replace(" ", "")
-    return _CHART_TYPE_ALIASES.get(token, token)
+    types = iter_requested_chart_types(message)
+    if len(types) == 1:
+        return next(iter(types))
+    return None
+
+
+def should_attempt_chart(message: str) -> bool:
+    distinct = count_distinct_requested_chart_types(message)
+    if distinct > 1:
+        return False
+    return message_requests_visualization(message) or distinct == 1
 
 
 def _series_type(chart: ChartSpec) -> str | None:

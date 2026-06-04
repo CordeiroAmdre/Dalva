@@ -8,7 +8,9 @@ from pathlib import Path
 
 import duckdb
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+from dalva_backend.paths import find_repo_root
+
+REPO_ROOT = find_repo_root()
 INIT_DIR = REPO_ROOT / "docker" / "duckdb" / "init"
 PARQUET_DIR = REPO_ROOT / "docker" / "duckdb" / "parquet"
 DEFAULT_DB_PATH = REPO_ROOT / "data" / "pdv_ai.duckdb"

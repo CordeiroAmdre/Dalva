@@ -14,6 +14,7 @@ from decimal import Decimal
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
+from dalva_backend.paths import resolve_duckdb_url
 from dalva_backend.repositories.sql_validator import SqlValidationError, validate_readonly_sql
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,11 @@ class DatabaseRepository:
     max_rows: int = 100
     _engine: Engine | None = field(default=None, init=False, repr=False)
     _query_log: list[QueryExecution] = field(default_factory=list, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        resolved = resolve_duckdb_url(self.database_url)
+        if resolved is not None:
+            self.database_url = resolved
 
     def clear_query_log(self) -> None:
         self._query_log.clear()
