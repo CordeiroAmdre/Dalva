@@ -1,0 +1,20 @@
+{
+  "description": "Expected chart presence for messages without visualization keywords (heuristic may still apply).",
+  "cases": [
+    {
+      "message": "Quais totais por categoria?",
+      "query_preview": "('A', 10)\n('B', 20)",
+      "expect_chart": true
+    },
+    {
+      "message": "qual o total de vendas ontem?",
+      "query_preview": "('2026-06-01', 1500.0)",
+      "expect_chart": false
+    },
+    {
+      "message": "liste as 10 lojas com maior faturamento",
+      "query_preview": "('Loja 1', 100)\n('Loja 2', 90)\n('Loja 3', 80)",
+      "expect_chart": true
+    }
+  ]
+}

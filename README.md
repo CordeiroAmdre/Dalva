@@ -11,31 +11,34 @@ LangChain + FastAPI service for the DALVA project. Includes the **Dalva** chat a
 - Node.js 20+ and npm (frontend)
 - OpenAI API key
 
-## Setup
+## Setup (backend)
 
 ```bash
+cd backend
 uv sync --dev
 cp .env.example .env
 # Edit .env: OPENAI_API_KEY=sk-...
 ```
 
-Enable database-backed answers in `.env`:
+Enable database-backed answers in `backend/.env`:
 
 ```env
 DATABASE_QUERIES_ENABLED=true
-DATABASE_URL=duckdb:///./data/pdv.duckdb
+DATABASE_URL=duckdb:///../data/pdv_ai.duckdb
 DATABASE_SCHEMA=pdv
 ```
 
-Initialize DuckDB (schema + seed):
+Initialize DuckDB (schema + seed; uses repo-root `docker/` and `data/`):
 
 ```bash
+cd backend
 uv run python -m dalva_backend.scripts.init_db
 ```
 
 ## Run the API
 
 ```bash
+cd backend
 uv run uvicorn dalva_backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
@@ -69,7 +72,7 @@ Response includes `reply`, `model`, `used_database`, `data_sources`, and optiona
 Backend:
 
 ```bash
-uv run pytest
+cd backend && uv run pytest
 ```
 
 Frontend:
@@ -83,23 +86,30 @@ Tests mock the language model, SQL agent, and HTTP API — no API key required f
 ## Project layout
 
 ```text
+backend/
+├── pyproject.toml
+├── src/dalva_backend/
+│   ├── main.py               # FastAPI app + CORS
+│   ├── controllers/          # HTTP layer (routes)
+│   ├── models/               # Request/response DTOs
+│   ├── services/             # ChatService, ChartBuilder
+│   ├── repositories/         # LLM + SQL agent + read-only DB
+│   └── prompts/              # LangChain prompt templates
+└── tests/
+
 frontend/
 ├── src/
 │   ├── pages/ChatPage.tsx    # Ant Design chat UI + ECharts
 │   ├── hooks/useChatSession.ts
 │   └── services/dalvaApi.ts
 
-src/dalva_backend/
-├── main.py                   # FastAPI app + CORS
-├── controllers/              # HTTP layer (routes)
-├── models/                   # Request/response DTOs (Pydantic)
-├── services/                 # ChatService, ChartBuilder
-├── repositories/             # LLM + SQL agent + read-only DB access
-└── prompts/                  # LangChain prompt templates
+data/                         # DuckDB (repo root, generated)
+docker/duckdb/                # Seed SQL + Parquet (repo root)
 ```
 
 ## Feature documentation
 
+- `specs/009-separate-fe-be-modules/` — Backend/frontend module layout
 - `specs/006-dalva-chat-frontend/` — React chat frontend (plan, quickstart, contracts)
 - `specs/002-langchain-db-queries/` — Database query access
 - `specs/003-rename-dalva/` — Dalva identity rename
