@@ -20,5 +20,11 @@ export const dalvaTheme: ThemeConfig = {
       activeBorderColor: "#6b38d4",
       hoverBorderColor: "#8455ef",
     },
+    Card: {
+      borderRadiusLG: 24,
+    },
+    Tag: {
+      borderRadiusSM: 999,
+    },
   },
 };

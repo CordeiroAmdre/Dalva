@@ -8,6 +8,7 @@ vi.mock("echarts-for-react", () => ({
 
 import { ChatComposer } from "../components/chat/ChatComposer";
 import { ChatIdleHero } from "../components/chat/ChatIdleHero";
+import { ChatDashboardCard } from "../components/chat/ChatDashboardCard";
 import { ChatIdleState } from "../components/chat/ChatIdleState";
 import { ChatThread } from "../components/chat/ChatThread";
 import { MESSAGE_MAX_LENGTH } from "../types/chat";
@@ -15,6 +16,23 @@ import { MESSAGE_MAX_LENGTH } from "../types/chat";
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+describe("ChatDashboardCard", () => {
+  it("renders dashboard CTA and calls handler on click", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+
+    render(<ChatDashboardCard onOpenDashboard={onOpen} />);
+    expect(screen.getByText("Painel de KPIs")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Gráficos e indicadores do PDV atualizados em tempo real/i),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("chat-dashboard-cta")).toHaveTextContent("Abrir painel");
+
+    await user.click(screen.getByTestId("chat-dashboard-cta"));
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("ChatIdleState", () => {
@@ -35,9 +53,9 @@ describe("ChatIdleHero", () => {
     render(<ChatIdleHero variant="compact" />);
     expect(screen.getByTestId("chat-idle-hero")).toHaveAttribute("data-variant", "compact");
     expect(screen.getByText("Dalva")).toBeInTheDocument();
-    expect(screen.getByText("Chat com seus dados")).toBeInTheDocument();
+    expect(screen.getByText("KPIs e chat com seus dados")).toBeInTheDocument();
     expect(
-      screen.getByText(/Faça perguntas sobre produtos, vendas, lojas e pagamentos/i),
+      screen.getByText(/Acompanhe indicadores no painel ou pergunte sobre produtos/i),
     ).toBeInTheDocument();
   });
 });

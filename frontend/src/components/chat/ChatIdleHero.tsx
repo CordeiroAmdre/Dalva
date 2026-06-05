@@ -1,4 +1,5 @@
-import { MaterialIcon } from "./MaterialIcon";
+import { ThunderboltOutlined } from "@ant-design/icons";
+import { Flex, Tag, Typography } from "antd";
 
 interface ChatIdleHeroProps {
   variant?: "expanded" | "compact";
@@ -6,20 +7,26 @@ interface ChatIdleHeroProps {
 
 export function ChatIdleHero({ variant = "expanded" }: ChatIdleHeroProps) {
   return (
-    <header
+    <Flex
+      component="header"
       className={`chat-idle-hero chat-idle-hero--${variant}`}
       data-testid="chat-idle-hero"
       data-variant={variant}
+      vertical
+      align="center"
     >
-      <div className="chat-idle-hero__badge">
-        <MaterialIcon name="auto_awesome" filled size={14} className="chat-idle-hero__badge-icon" />
-        <span>Assistente IA</span>
-      </div>
-      <h1 className="chat-idle-hero__title">Dalva</h1>
-      <p className="chat-idle-hero__subtitle">Chat com seus dados</p>
-      <p className="chat-idle-hero__description">
-        Faça perguntas sobre produtos, vendas, lojas e pagamentos.
-      </p>
-    </header>
+      <Tag icon={<ThunderboltOutlined />} className="chat-idle-hero__badge">
+        Painel + assistente
+      </Tag>
+      <Typography.Title level={1} className="chat-idle-hero__title">
+        Dalva
+      </Typography.Title>
+      <Typography.Text className="chat-idle-hero__subtitle">
+        KPIs e chat com seus dados
+      </Typography.Text>
+      <Typography.Paragraph className="chat-idle-hero__description">
+        Acompanhe indicadores no painel ou pergunte sobre produtos, vendas, lojas e pagamentos.
+      </Typography.Paragraph>
+    </Flex>
   );
 }

@@ -1,0 +1,280 @@
+/* Home page layout — independent from chat-shell (conversation) */
+
+html:has(.home-shell) {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body:has(.home-shell) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#root:has(.home-shell) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  min-height: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.page-transition:has(.home-shell) {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.home-shell {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(
+    to bottom right,
+    var(--dalva-background),
+    color-mix(in srgb, var(--dalva-primary-fixed) 20%, transparent)
+  );
+  color: var(--dalva-on-background);
+  box-sizing: border-box;
+}
+
+.home-shell::before,
+.home-shell::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(80px);
+}
+
+.home-shell::before {
+  top: -10%;
+  left: -10%;
+  width: 50%;
+  height: 50%;
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in srgb, var(--dalva-primary-light) 10%, transparent),
+    transparent
+  );
+}
+
+.home-shell::after {
+  bottom: -10%;
+  right: -10%;
+  width: 60%;
+  height: 60%;
+  background: linear-gradient(
+    to top left,
+    color-mix(in srgb, var(--dalva-primary) 10%, transparent),
+    transparent
+  );
+}
+
+.home-shell__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: var(--dalva-max-width-home);
+  min-height: 0;
+  margin: 0 auto;
+  padding: clamp(8px, 1.5vh, 14px) 16px clamp(8px, 1.5vh, 14px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.home-shell__inner > .chat-idle-hero {
+  width: 100%;
+  max-width: var(--dalva-idle-card-max-width);
+  margin-inline: auto;
+  margin-top: 0;
+  margin-bottom: clamp(8px, 1.5vh, 14px);
+  text-align: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.home-shell .chat-idle-hero__badge,
+.home-shell .chat-idle-hero__badge.ant-tag {
+  margin-bottom: 8px;
+  padding: 4px 14px;
+  font-size: 12px;
+}
+
+.home-shell .chat-idle-hero__title,
+.home-shell .chat-idle-hero__title.ant-typography {
+  margin: 0 0 2px;
+  font-size: clamp(32px, 6vh, 58px);
+  line-height: 1.08;
+}
+
+.home-shell .chat-idle-hero__subtitle,
+.home-shell .chat-idle-hero__subtitle.ant-typography {
+  margin: 0 auto 6px;
+  font-size: clamp(18px, 2.5vh, 22px);
+  line-height: 1.25;
+}
+
+.home-shell .chat-idle-hero__description,
+.home-shell .chat-idle-hero__description.ant-typography {
+  font-size: clamp(15px, 2vh, 16px);
+  line-height: 1.45;
+}
+
+.home-shell__body {
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: var(--dalva-idle-card-max-width);
+  min-height: 0;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+.home-shell__cards {
+  width: 100%;
+}
+
+.home-shell__card-list.ant-space {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: var(--dalva-idle-card-max-width);
+  gap: clamp(8px, 1.2vh, 12px) !important;
+}
+
+.home-shell__card-list.ant-space > .ant-space-item {
+  width: 100%;
+  max-width: 100%;
+}
+
+.home-shell__card.ant-card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border-radius: 20px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--dalva-surface-container-lowest) 70%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid color-mix(in srgb, white 60%, transparent);
+  box-shadow: none;
+}
+
+.home-shell__card.ant-card .ant-card-body {
+  padding: 0;
+}
+
+.home-shell__card--dashboard.ant-card {
+  background: linear-gradient(
+    135deg,
+    var(--dalva-primary-light),
+    var(--dalva-primary)
+  );
+  border: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+
+.home-shell .chat-dashboard-card,
+.home-shell .chat-idle {
+  padding: clamp(14px, 2vh, 20px) 20px clamp(12px, 1.8vh, 18px);
+}
+
+.home-shell .chat-dashboard-card__icon-wrap,
+.home-shell .chat-idle__icon-wrap,
+.home-shell .chat-dashboard-card__icon-wrap.ant-avatar,
+.home-shell .chat-idle__icon-wrap.ant-avatar {
+  width: clamp(52px, 7vh, 68px);
+  height: clamp(52px, 7vh, 68px);
+  min-width: clamp(52px, 7vh, 68px);
+  margin-bottom: 10px;
+}
+
+.home-shell .chat-dashboard-card__icon-wrap.ant-avatar .anticon,
+.home-shell .chat-idle__icon-wrap.ant-avatar .anticon {
+  font-size: clamp(28px, 4vh, 36px);
+}
+
+.home-shell .chat-dashboard-card .chat-dashboard-card__title,
+.home-shell .chat-dashboard-card .chat-dashboard-card__title.ant-typography,
+.home-shell .chat-idle .chat-idle__title,
+.home-shell .chat-idle .chat-idle__title.ant-typography {
+  margin: 0 0 4px;
+  font-size: clamp(20px, 2.6vh, 22px);
+  line-height: 1.25;
+}
+
+.home-shell .chat-dashboard-card .chat-dashboard-card__description,
+.home-shell .chat-dashboard-card .chat-dashboard-card__description.ant-typography,
+.home-shell .chat-idle .chat-idle__subtitle,
+.home-shell .chat-idle .chat-idle__subtitle.ant-typography {
+  font-size: clamp(15px, 2vh, 16px);
+  line-height: 1.45;
+  margin-bottom: clamp(10px, 1.5vh, 14px);
+}
+
+.home-shell .chat-dashboard-card > .ant-btn,
+.home-shell .chat-idle > .ant-btn {
+  box-sizing: border-box;
+  width: 220px;
+  max-width: 100%;
+  height: auto;
+  min-height: 44px;
+  padding: 12px 24px;
+  font-family: "Hanken Grotesk", Manrope, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow: none;
+}
+
+.home-shell .chat-dashboard-card > .ant-btn,
+.home-shell .chat-dashboard-card > .ant-btn:not(:disabled):hover,
+.home-shell .chat-dashboard-card > .ant-btn:not(:disabled):focus-visible,
+.home-shell .chat-dashboard-card > .ant-btn:not(:disabled):active {
+  color: var(--dalva-primary-light) !important;
+}
+
+.home-shell .chat-idle > .ant-btn,
+.home-shell .chat-idle > .ant-btn:not(:disabled):hover,
+.home-shell .chat-idle > .ant-btn:not(:disabled):focus-visible,
+.home-shell .chat-idle > .ant-btn:not(:disabled):active {
+  color: #ffffff !important;
+}
+
+.home-shell .chat-idle > .ant-btn .anticon {
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .home-shell__inner {
+    padding: 8px 12px 10px;
+  }
+
+  .home-shell .chat-idle-hero__title,
+  .home-shell .chat-idle-hero__title.ant-typography {
+    font-size: clamp(30px, 8vw, 44px);
+  }
+}
