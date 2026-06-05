@@ -178,7 +178,7 @@ body:has(.home-shell) {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid color-mix(in srgb, white 60%, transparent);
-  box-shadow: 0 8px 40px color-mix(in srgb, var(--dalva-primary-light) 8%, transparent);
+  box-shadow: none;
 }
 
 .home-shell__card.ant-card .ant-card-body {
@@ -194,7 +194,7 @@ body:has(.home-shell) {
   border: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--dalva-primary) 28%, transparent);
+  box-shadow: none;
 }
 
 .home-shell .chat-dashboard-card,
