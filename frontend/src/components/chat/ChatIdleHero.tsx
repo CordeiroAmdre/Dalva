@@ -13,12 +13,12 @@ export function ChatIdleHero({ variant = "expanded" }: ChatIdleHeroProps) {
     >
       <div className="chat-idle-hero__badge">
         <MaterialIcon name="auto_awesome" filled size={14} className="chat-idle-hero__badge-icon" />
-        <span>Assistente IA</span>
+        <span>Painel + assistente</span>
       </div>
       <h1 className="chat-idle-hero__title">Dalva</h1>
-      <p className="chat-idle-hero__subtitle">Chat com seus dados</p>
+      <p className="chat-idle-hero__subtitle">KPIs e chat com seus dados</p>
       <p className="chat-idle-hero__description">
-        Faça perguntas sobre produtos, vendas, lojas e pagamentos.
+        Acompanhe indicadores no painel ou pergunte sobre produtos, vendas, lojas e pagamentos.
       </p>
     </header>
   );

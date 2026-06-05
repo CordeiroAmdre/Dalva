@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { ChatDashboardCard } from "./ChatDashboardCard";
 import { ChatIdleHero } from "./ChatIdleHero";
 import { ChatIdleState } from "./ChatIdleState";
 
@@ -7,9 +8,10 @@ import { ChatIdleState } from "./ChatIdleState";
 interface ChatIdleHomeProps {
   composer: ReactNode;
   onStartAnalysis?: () => void;
+  onOpenDashboard?: () => void;
 }
 
-export function ChatIdleHome({ composer, onStartAnalysis }: ChatIdleHomeProps) {
+export function ChatIdleHome({ composer, onStartAnalysis, onOpenDashboard }: ChatIdleHomeProps) {
   return (
     <div className="chat-idle-home" data-testid="chat-idle-home">
       <div className="chat-idle-home__orb chat-idle-home__orb--top" aria-hidden="true" />
@@ -17,6 +19,12 @@ export function ChatIdleHome({ composer, onStartAnalysis }: ChatIdleHomeProps) {
       <main className="chat-idle-home__main">
         <ChatIdleHero />
         <div className="chat-idle-home__cards">
+          <div
+            className="chat-idle-home__card chat-idle-home__card--dashboard"
+            data-testid="chat-dashboard-card"
+          >
+            <ChatDashboardCard onOpenDashboard={onOpenDashboard} />
+          </div>
           <div className="chat-idle-home__card" data-testid="chat-idle-welcome-card">
             <ChatIdleState onStartAnalysis={onStartAnalysis} />
           </div>

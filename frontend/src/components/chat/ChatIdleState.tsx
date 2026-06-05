@@ -10,20 +10,19 @@ export function ChatIdleState({ onStartAnalysis }: ChatIdleStateProps) {
       <div className="chat-idle__icon-wrap">
         <MaterialIcon name="forum" size={48} className="chat-idle__forum-icon" />
       </div>
-      <h2 className="chat-idle__title">Envie uma pergunta para iniciar a conversa.</h2>
+      <h2 className="chat-idle__title">Converse com seus dados</h2>
       <p className="chat-idle__subtitle">
-        Dalva analisa seus dados em tempo real para fornecer respostas precisas e insights
-        valiosos para o seu negócio.
+        Pergunte em linguagem natural e receba respostas e insights sobre o seu negócio.
       </p>
       <button
         type="button"
         className="chat-idle__cta"
         data-testid="chat-idle-cta"
-        aria-label="Começar nova análise"
+        aria-label="Iniciar conversa"
         onClick={onStartAnalysis}
       >
         <MaterialIcon name="auto_awesome" size={18} filled />
-        <span>Começar nova análise</span>
+        <span>Iniciar conversa</span>
       </button>
     </div>
   );
