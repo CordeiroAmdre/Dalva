@@ -37,7 +37,6 @@ export default function ConversationPage() {
 
   return (
     <ChatShell
-      layout="conversation"
       mode={isIdle ? "idle" : "active"}
       composer={composer}
       messages={messages}

@@ -23,7 +23,8 @@ describe("HomePage", () => {
   it("shows landing with hero, cards, and no composer", () => {
     renderHomePage();
 
-    expect(screen.getByTestId("chat-shell")).toHaveAttribute("data-layout", "home");
+    expect(screen.getByTestId("home-shell")).toBeInTheDocument();
+    expect(screen.queryByTestId("chat-shell")).not.toBeInTheDocument();
     expect(screen.getByTestId("chat-idle-hero")).toHaveAttribute("data-variant", "expanded");
     expect(screen.getByText("Painel + assistente")).toBeInTheDocument();
     expect(screen.getByTestId("chat-idle-state")).toBeInTheDocument();
@@ -34,7 +35,9 @@ describe("HomePage", () => {
     expect(screen.getByTestId("chat-dashboard-card")).toBeInTheDocument();
     expect(screen.getByTestId("chat-idle-cta")).toBeInTheDocument();
     expect(screen.queryByTestId("chat-composer-idle")).not.toBeInTheDocument();
-    expect(document.querySelector(".chat-shell__orb")).toBeInTheDocument();
+    const homeShell = screen.getByTestId("home-shell");
+    expect(homeShell.children).toHaveLength(1);
+    expect(homeShell.firstElementChild).toHaveClass("home-shell__inner");
   });
 
   it("navigates to dashboard page when clicking Abrir painel", async () => {
@@ -44,7 +47,7 @@ describe("HomePage", () => {
     await user.click(screen.getByTestId("chat-dashboard-cta"));
 
     expect(screen.getByTestId("dashboard-page")).toBeInTheDocument();
-    expect(screen.queryByTestId("chat-shell")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("home-shell")).not.toBeInTheDocument();
   });
 
   it("navigates to conversation page when clicking Iniciar conversa", async () => {
@@ -56,5 +59,6 @@ describe("HomePage", () => {
     expect(screen.getByTestId("chat-shell")).toHaveAttribute("data-layout", "conversation");
     expect(screen.getByTestId("chat-composer-idle")).toBeVisible();
     expect(screen.queryByTestId("chat-idle-state")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("home-shell")).not.toBeInTheDocument();
   });
 });

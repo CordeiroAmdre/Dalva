@@ -7,6 +7,7 @@ import App from "./App.tsx";
 import { dalvaTheme } from "./theme/dalvaTheme";
 import "antd/dist/reset.css";
 import "./theme/dalvaTokens.css";
+import "./theme/homeShell.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

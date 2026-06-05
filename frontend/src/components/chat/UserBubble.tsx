@@ -1,5 +1,3 @@
-import { MaterialIcon } from "./MaterialIcon";
-
 interface UserBubbleProps {
   id: string;
   text: string;

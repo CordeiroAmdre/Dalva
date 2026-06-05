@@ -20,6 +20,9 @@
   --dalva-max-width: 720px;
   --dalva-max-width-home: 1440px;
   --dalva-idle-card-max-width: 560px;
+  --dalva-welcome-card-icon-ring: 96px;
+  --dalva-welcome-card-icon-size: 48px;
+  --dalva-welcome-card-padding: 40px 28px 36px;
   --dalva-header-height: 64px;
   --dalva-composer-bottom-desktop: 24px;
   --chat-transition-duration: 300ms;
@@ -207,13 +210,6 @@ body {
     opacity var(--chat-transition-duration) var(--chat-transition-easing),
     transform var(--chat-transition-duration) var(--chat-transition-easing),
     visibility var(--chat-transition-duration) var(--chat-transition-easing);
-}
-
-.chat-shell--idle-home .chat-composer-wrap--idle-entry {
-  opacity: 0;
-  transform: translateY(var(--chat-slide-distance));
-  pointer-events: none;
-  visibility: hidden;
 }
 
 .chat-shell--idle-entry .chat-composer-wrap--idle-entry {
@@ -573,26 +569,6 @@ body {
   min-height: 0;
 }
 
-.chat-shell--idle-home .chat-shell__inner--unified {
-  justify-content: center;
-  padding-block: clamp(16px, 4vh, 32px);
-}
-
-.chat-shell--idle-home .chat-shell__body {
-  flex: 0 1 auto;
-  width: 100%;
-}
-
-.chat-shell--idle-home .chat-shell__content-slot {
-  flex: 0 1 auto;
-  min-height: 0;
-}
-
-.chat-shell--idle-home .chat-idle-hero {
-  margin-top: 0;
-  margin-bottom: clamp(24px, 4vh, 40px);
-}
-
 .chat-shell__inner--unified > .chat-idle-hero,
 .chat-shell__inner--unified > .chat-shell__body {
   width: 100%;
@@ -664,12 +640,6 @@ body {
     visibility var(--chat-transition-duration) var(--chat-transition-easing);
 }
 
-.chat-shell--idle-home .chat-shell__welcome-layer {
-  opacity: 1;
-  transform: translateY(0);
-  visibility: visible;
-}
-
 .chat-shell--idle-entry .chat-shell__welcome-layer {
   position: absolute;
   inset: 0;
@@ -724,42 +694,6 @@ body {
     transition: opacity 50ms ease;
     transform: none !important;
   }
-}
-
-.chat-shell__welcome-cards {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-}
-
-.chat-shell__card {
-  width: 100%;
-  border-radius: 24px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--dalva-surface-container-lowest) 70%, transparent);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid color-mix(in srgb, white 60%, transparent);
-  box-shadow: 0 8px 40px color-mix(in srgb, var(--dalva-primary-light) 8%, transparent);
-}
-
-.chat-shell__card--dashboard {
-  background: linear-gradient(
-    135deg,
-    var(--dalva-primary-light),
-    var(--dalva-primary)
-  );
-  border: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--dalva-primary) 28%, transparent);
-}
-
-.chat-shell__card--composer {
-  padding: 16px 20px 12px;
-  background: color-mix(in srgb, var(--dalva-surface-container-lowest) 75%, transparent);
 }
 
 .chat-shell__composer-layer--idle {
@@ -820,7 +754,8 @@ body {
   border: none;
 }
 
-.chat-idle-hero--compact .chat-idle-hero__title {
+.chat-idle-hero--compact .chat-idle-hero__title,
+.chat-idle-hero--compact .chat-idle-hero__title.ant-typography {
   font-size: 20px;
   font-weight: 600;
   margin: 0;
@@ -846,64 +781,7 @@ body {
   box-shadow: 0 8px 40px color-mix(in srgb, var(--dalva-primary-light) 8%, transparent);
 }
 
-/* --- Idle / Home redesign (chat_example.html) --- */
-
-.chat-idle-home {
-  position: relative;
-  min-height: 100dvh;
-  background: linear-gradient(
-    to bottom right,
-    var(--dalva-background),
-    color-mix(in srgb, var(--dalva-primary-fixed) 20%, transparent)
-  );
-  overflow-x: hidden;
-}
-
-.chat-idle-home__orb {
-  position: fixed;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-  filter: blur(80px);
-}
-
-.chat-idle-home__orb--top {
-  top: -10%;
-  left: -10%;
-  width: 50vw;
-  height: 50vw;
-  background: linear-gradient(
-    to bottom right,
-    color-mix(in srgb, var(--dalva-primary-light) 10%, transparent),
-    transparent
-  );
-}
-
-.chat-idle-home__orb--bottom {
-  bottom: -10%;
-  right: -10%;
-  width: 60vw;
-  height: 60vw;
-  background: linear-gradient(
-    to top left,
-    color-mix(in srgb, var(--dalva-primary) 10%, transparent),
-    transparent
-  );
-}
-
-.chat-idle-home__main {
-  position: relative;
-  z-index: 1;
-  max-width: var(--dalva-max-width-home);
-  margin: 0 auto;
-  padding: 32px 16px 24px;
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+/* --- Idle hero (home + conversation) --- */
 
 .chat-idle-hero {
   text-align: center;
@@ -1000,56 +878,18 @@ body {
   opacity: 0.9;
 }
 
-.chat-idle-home__cards {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  max-width: var(--dalva-idle-card-max-width);
-  margin: 0 auto;
-}
-
-.chat-idle-home__card {
-  width: 100%;
-  border-radius: 24px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--dalva-surface-container-lowest) 70%, transparent);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid color-mix(in srgb, white 60%, transparent);
-  box-shadow: 0 8px 40px color-mix(in srgb, var(--dalva-primary-light) 8%, transparent);
-}
-
-.chat-idle-home__card--dashboard {
-  background: linear-gradient(
-    135deg,
-    var(--dalva-primary-light),
-    var(--dalva-primary)
-  );
-  border: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--dalva-primary) 28%, transparent);
-}
-
-.chat-idle-home__card--composer {
-  padding: 16px 20px 12px;
-  background: color-mix(in srgb, var(--dalva-surface-container-lowest) 75%, transparent);
-}
-
 .chat-idle {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 40px 28px 36px;
+  padding: var(--dalva-welcome-card-padding);
 }
 
 .chat-idle__icon-wrap {
-  width: 96px;
-  height: 96px;
+  width: var(--dalva-welcome-card-icon-ring);
+  height: var(--dalva-welcome-card-icon-ring);
   margin-bottom: 24px;
   display: flex;
   align-items: center;
@@ -1079,36 +919,8 @@ body {
   font-size: 16px;
   line-height: 1.5;
   color: var(--dalva-on-surface-variant);
-  margin: 0;
+  margin: 0 0 24px;
   max-width: 420px;
-}
-
-.chat-idle__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 32px;
-  padding: 12px 32px;
-  border: none;
-  border-radius: 9999px;
-  background: linear-gradient(to right, var(--dalva-primary-light), var(--dalva-primary));
-  color: #ffffff;
-  font-family: "Hanken Grotesk", Manrope, sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--dalva-primary-light) 25%, transparent);
-  transition: opacity 0.2s, box-shadow 0.2s, transform 0.15s;
-}
-
-.chat-idle__cta:hover {
-  opacity: 0.95;
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--dalva-primary-light) 30%, transparent);
-}
-
-.chat-idle__cta:active {
-  transform: scale(0.98);
 }
 
 .chat-dashboard-card {
@@ -1117,13 +929,13 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 32px 28px 28px;
+  padding: var(--dalva-welcome-card-padding);
 }
 
 .chat-dashboard-card__icon-wrap {
-  width: 72px;
-  height: 72px;
-  margin-bottom: 16px;
+  width: var(--dalva-welcome-card-icon-ring);
+  height: var(--dalva-welcome-card-icon-ring);
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1143,36 +955,11 @@ body {
 }
 
 .chat-dashboard-card__description {
-  margin: 0;
+  margin: 0 0 24px;
   max-width: 400px;
   font-size: 15px;
   line-height: 1.5;
   color: color-mix(in srgb, white 92%, transparent);
-}
-
-.chat-dashboard-card__cta {
-  margin-top: 24px;
-  padding: 12px 28px;
-  border: none;
-  border-radius: 9999px;
-  background: #ffffff;
-  color: var(--dalva-primary);
-  font-family: "Hanken Grotesk", Manrope, sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 4px 12px color-mix(in srgb, black 12%, transparent);
-}
-
-.chat-dashboard-card__cta:hover {
-  opacity: 0.95;
-  box-shadow: 0 6px 16px color-mix(in srgb, black 16%, transparent);
-}
-
-.chat-dashboard-card__cta:active {
-  transform: scale(0.98);
 }
 
 .chat-composer--idle-home {
@@ -1263,10 +1050,6 @@ body {
     padding: 20px 12px 24px;
   }
 
-  .chat-shell--idle-home .chat-shell__inner--unified {
-    padding-block: clamp(12px, 3vh, 24px);
-  }
-
   .chat-composer-wrap {
     bottom: 0;
     padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
@@ -1297,8 +1080,10 @@ body {
     margin-bottom: 24px;
   }
 
-  .chat-idle-hero__title {
+  .chat-idle-hero:not(.chat-idle-hero--compact) .chat-idle-hero__title,
+  .chat-idle-hero:not(.chat-idle-hero--compact) .chat-idle-hero__title.ant-typography {
     font-size: clamp(36px, 11vw, 56px);
+    line-height: 1.1;
   }
 
   .chat-idle-hero__description {
@@ -1557,3 +1342,141 @@ body {
   font-size: 15px;
   color: var(--dalva-on-surface-variant);
 }
+
+.chat-idle-hero__badge.ant-tag {
+  margin-inline-end: 0;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--dalva-primary-light) 10%, transparent),
+    color-mix(in srgb, var(--dalva-primary) 10%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--dalva-primary-light) 20%, transparent);
+  color: var(--dalva-primary-light);
+}
+
+.chat-idle-hero__title.ant-typography {
+  margin: 0 0 4px;
+  font-size: clamp(24px, 5vw, 84px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    90deg,
+    #977ce8 0%,
+    #5c37b3 16%,
+    #b2a0e8 33%,
+    #977ce8 50%,
+    #5c37b3 66%,
+    #b2a0e8 83%,
+    #977ce8 100%
+  );
+  background-size: 200% 100%;
+  animation: chat-idle-hero-title-wave 7s ease-in-out infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (min-width: 641px) {
+  .chat-idle-hero:not(.chat-idle-hero--compact) .chat-idle-hero__title,
+  .chat-idle-hero:not(.chat-idle-hero--compact) .chat-idle-hero__title.ant-typography {
+    font-size: clamp(48px, 5vw, 84px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+}
+
+.chat-idle-hero__subtitle.ant-typography,
+.chat-idle-hero__description.ant-typography {
+  display: block;
+}
+
+/* Card typography — match pre-Ant Design mockup (h2 / p) */
+.chat-dashboard-card .chat-dashboard-card__title.ant-typography {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: normal;
+  color: #ffffff;
+}
+
+.chat-dashboard-card .chat-dashboard-card__description.ant-typography {
+  margin: 0 0 24px;
+  max-width: 400px;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: color-mix(in srgb, white 92%, transparent);
+}
+
+.chat-idle .chat-idle__title.ant-typography {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: normal;
+  color: var(--dalva-on-surface);
+}
+
+.chat-idle .chat-idle__subtitle.ant-typography {
+  margin: 0 0 24px;
+  max-width: 420px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: var(--dalva-on-surface-variant);
+}
+
+.chat-dashboard-card.ant-flex,
+.chat-idle.ant-flex {
+  gap: 0;
+}
+
+.chat-dashboard-card__icon-wrap.ant-avatar,
+.chat-idle__icon-wrap.ant-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-inline: 0;
+  width: var(--dalva-welcome-card-icon-ring);
+  height: var(--dalva-welcome-card-icon-ring);
+  min-width: var(--dalva-welcome-card-icon-ring);
+  margin-bottom: 24px;
+}
+
+.chat-dashboard-card__icon-wrap.ant-avatar > .ant-avatar-icon,
+.chat-idle__icon-wrap.ant-avatar > .ant-avatar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  line-height: 1;
+}
+
+.chat-dashboard-card__icon-wrap.ant-avatar {
+  background: color-mix(in srgb, white 22%, transparent);
+}
+
+.chat-dashboard-card__icon-wrap.ant-avatar .anticon,
+.chat-idle__icon-wrap.ant-avatar .anticon {
+  font-size: var(--dalva-welcome-card-icon-size);
+}
+
+.chat-idle__icon-wrap.ant-avatar {
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in srgb, var(--dalva-primary-light) 20%, transparent),
+    color-mix(in srgb, var(--dalva-primary) 5%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--dalva-primary-light) 20%, transparent);
+  box-shadow: inset 0 2px 8px color-mix(in srgb, var(--dalva-primary-light) 8%, transparent);
+}
+

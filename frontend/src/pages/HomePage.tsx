@@ -1,14 +1,13 @@
 import { useNavigate } from "react-router-dom";
 
-import { ChatShell } from "../components/chat/ChatShell";
+import { HomePageView } from "../components/home/HomePageView";
 import { ROUTES } from "../config/routes";
 
 export default function HomePage() {
   const navigate = useNavigate();
 
   return (
-    <ChatShell
-      layout="home"
+    <HomePageView
       onStartConversation={() => navigate(ROUTES.conversation)}
       onOpenDashboard={() => navigate(ROUTES.dashboard)}
     />

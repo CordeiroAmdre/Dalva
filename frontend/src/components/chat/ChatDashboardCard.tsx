@@ -1,4 +1,5 @@
-import { MaterialIcon } from "./MaterialIcon";
+import { DashboardOutlined } from "@ant-design/icons";
+import { Avatar, Button, Flex, Typography } from "antd";
 
 interface ChatDashboardCardProps {
   onOpenDashboard?: () => void;
@@ -6,23 +7,30 @@ interface ChatDashboardCardProps {
 
 export function ChatDashboardCard({ onOpenDashboard }: ChatDashboardCardProps) {
   return (
-    <div className="chat-dashboard-card" data-testid="chat-dashboard-card">
-      <div className="chat-dashboard-card__icon-wrap">
-        <MaterialIcon name="dashboard" size={40} className="chat-dashboard-card__icon" />
-      </div>
-      <h2 className="chat-dashboard-card__title">Painel de KPIs</h2>
-      <p className="chat-dashboard-card__description">
+    <Flex
+      className="chat-dashboard-card"
+      data-testid="chat-dashboard-card"
+      vertical
+      align="center"
+    >
+      <Avatar
+        className="chat-dashboard-card__icon-wrap"
+        icon={<DashboardOutlined className="chat-dashboard-card__icon" />}
+      />
+      <Typography.Title level={2} className="chat-dashboard-card__title">
+        Painel de KPIs
+      </Typography.Title>
+      <Typography.Paragraph className="chat-dashboard-card__description">
         Gráficos e indicadores do PDV atualizados em tempo real.
-      </p>
-      <button
-        type="button"
-        className="chat-dashboard-card__cta"
+      </Typography.Paragraph>
+      <Button
+        type="default"
         data-testid="chat-dashboard-cta"
         aria-label="Abrir painel de KPIs"
         onClick={onOpenDashboard}
       >
         Abrir painel
-      </button>
-    </div>
+      </Button>
+    </Flex>
   );
 }
