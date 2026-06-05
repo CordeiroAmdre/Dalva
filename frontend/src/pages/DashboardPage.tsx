@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-
+import { PageBackLink } from "../components/layout/PageBackLink";
 import { MaterialIcon } from "../components/chat/MaterialIcon";
 import { ROUTES } from "../config/routes";
 
@@ -10,10 +9,7 @@ export default function DashboardPage() {
       <div className="dashboard-page__orb dashboard-page__orb--bottom" aria-hidden="true" />
 
       <header className="dashboard-page__header">
-        <Link to={ROUTES.home} className="dashboard-page__back" data-testid="dashboard-back-link">
-          <MaterialIcon name="arrow_back" size={20} />
-          <span>Voltar ao chat</span>
-        </Link>
+        <PageBackLink to={ROUTES.home} label="Voltar ao início" testId="dashboard-back-link" />
       </header>
 
       <main className="dashboard-page__main">

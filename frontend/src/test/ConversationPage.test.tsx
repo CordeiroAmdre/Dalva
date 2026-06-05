@@ -36,12 +36,23 @@ describe("ConversationPage", () => {
     renderConversationPage();
 
     expect(screen.getByTestId("chat-shell")).toHaveAttribute("data-layout", "conversation");
+    expect(screen.getByTestId("conversation-back-link")).toBeInTheDocument();
     expect(screen.getByTestId("chat-shell")).toHaveAttribute("data-mode", "idle");
     expect(screen.getByTestId("chat-shell")).toHaveAttribute("data-idle-phase", "entry");
     expect(screen.getByTestId("chat-composer-idle")).toBeVisible();
     expect(screen.getByTestId("char-counter")).toHaveTextContent(`0/${MESSAGE_MAX_LENGTH}`);
     expect(screen.queryByTestId("chat-idle-state")).not.toBeInTheDocument();
     expect(screen.getByTestId("chat-idle-hero")).toBeInTheDocument();
+  });
+
+  it("navigates back to home when clicking back link", async () => {
+    const user = userEvent.setup();
+    renderConversationPage();
+
+    await user.click(screen.getByTestId("conversation-back-link"));
+
+    expect(screen.getByTestId("home-shell")).toBeInTheDocument();
+    expect(screen.queryByTestId("chat-shell")).not.toBeInTheDocument();
   });
 
   describe("unified shell transition (US6)", () => {

@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 
+import { ROUTES } from "../../config/routes";
 import type { ChatThreadItem } from "../../types/chat";
+import { PageBackLink } from "../layout/PageBackLink";
 import { ChatIdleHero } from "./ChatIdleHero";
 import { ChatThread } from "./ChatThread";
 
@@ -27,6 +29,10 @@ export function ChatShell(props: ChatShellProps) {
     >
       <div className="chat-shell__orb chat-shell__orb--top" aria-hidden="true" />
       <div className="chat-shell__orb chat-shell__orb--bottom" aria-hidden="true" />
+
+      <header className="dashboard-page__header">
+        <PageBackLink to={ROUTES.home} label="Voltar ao início" testId="conversation-back-link" />
+      </header>
 
       <div className="chat-shell__inner chat-shell__inner--unified">
         {errorAlert}
