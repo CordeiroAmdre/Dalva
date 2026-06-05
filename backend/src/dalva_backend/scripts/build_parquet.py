@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 
@@ -17,6 +17,7 @@ DEFAULT_PARQUET_DIR = REPO_ROOT / "docker" / "duckdb" / "parquet"
 SALES_SEED = 42
 NUM_SALES = 2500
 REFERENCE_NOW = datetime(2026, 5, 27, 12, 0, 0, tzinfo=timezone.utc)
+SESSION_DAYS = 90
 
 CATEGORIAS = [
     (1, "Bebidas"),
@@ -39,6 +40,57 @@ LOJAS = [
     (2, "Super PDV Norte", "Campinas", "SP"),
     (3, "Mini Mercado Sul", "Curitiba", "PR"),
 ]
+
+OPERADORES = [
+    (1, "Ana Silva", "OP001", True),
+    (2, "Bruno Costa", "OP002", True),
+    (3, "Carla Mendes", "OP003", True),
+    (4, "Diego Alves", "OP004", True),
+    (5, "Elena Rocha", "OP005", True),
+    (6, "Felipe Nunes", "OP006", True),
+    (7, "Gabriela Dias", "OP007", True),
+    (8, "Henrique Lima", "OP008", True),
+    (9, "Isabela Pires", "OP009", True),
+    (10, "João Pedro", "OP010", True),
+    (11, "Karina Souza", "OP011", True),
+    (12, "Lucas Martins", "OP012", True),
+]
+
+CLIENTES = [
+    (1, "Maria Oliveira", "52998224725", "maria.oliveira@email.com"),
+    (2, "José Santos", "39053344705", "jose.santos@email.com"),
+    (3, "Fernanda Lima", "12345678909", "fernanda.lima@email.com"),
+    (4, "Ricardo Souza", "98765432100", "ricardo.souza@email.com"),
+    (5, "Patrícia Alves", "11144477735", "patricia.alves@email.com"),
+    (6, "Marcos Pereira", "22233344456", "marcos.pereira@email.com"),
+    (7, "Juliana Costa", "33322211109", "juliana.costa@email.com"),
+    (8, "Paulo Ferreira", "44455566678", "paulo.ferreira@email.com"),
+    (9, "Camila Rocha", "55566677789", "camila.rocha@email.com"),
+    (10, "André Martins", "66677788890", "andre.martins@email.com"),
+    (11, "Larissa Dias", "77788899901", "larissa.dias@email.com"),
+    (12, "Thiago Nunes", "88899900012", "thiago.nunes@email.com"),
+    (13, "Beatriz Pires", "99900011123", "beatriz.pires@email.com"),
+    (14, "Gustavo Melo", "10020030040", "gustavo.melo@email.com"),
+    (15, "Renata Gomes", "20030040050", "renata.gomes@email.com"),
+]
+
+NCM_BY_CATEGORY = {
+    1: "22021000",
+    2: "19059090",
+    3: "04011010",
+    4: "34011190",
+    5: "34025000",
+    6: "04011010",
+}
+
+CEST_BY_CATEGORY = {
+    1: "0300100",
+    2: "1706200",
+    3: None,
+    4: "2000800",
+    5: "2001300",
+    6: "1705300",
+}
 
 PRODUTOS = [
     ("7891000100103", "Leite Integral 1L", 6, 4.89),
@@ -93,6 +145,13 @@ PRODUTOS = [
     ("7891000105004", "Salgadinho 150g", 3, 7.30),
 ]
 
+CPF_CONSUMIDOR_AVULSO = [
+    "12345678909",
+    "98765432100",
+    "11144477735",
+    "22233344456",
+]
+
 
 def _caixas_rows() -> list[tuple[int, int, int]]:
     rows: list[tuple[int, int, int]] = []
@@ -104,26 +163,128 @@ def _caixas_rows() -> list[tuple[int, int, int]]:
     return rows
 
 
-def _produto_rows() -> list[tuple[int, str, str, int, float, bool]]:
+def _produto_rows() -> list[tuple]:
     return [
-        (idx, codigo, nome, cat_id, preco, True)
+        (
+            idx,
+            codigo,
+            nome,
+            cat_id,
+            preco,
+            True,
+            NCM_BY_CATEGORY[cat_id],
+            CEST_BY_CATEGORY.get(cat_id),
+        )
         for idx, (codigo, nome, cat_id, preco) in enumerate(PRODUTOS, start=1)
     ]
 
 
-def _generate_sales() -> tuple[list[tuple], list[tuple]]:
-    """Build static vendas and itens_venda rows with a fixed random seed."""
+def _sessoes_caixa_rows() -> tuple[list[tuple], dict[tuple[int, date], int]]:
+    """One closed session per caixa per day; map (caixa_id, sale_date) -> session id."""
+    caixas = _caixas_rows()
+    sessions: list[tuple] = []
+    session_lookup: dict[tuple[int, date], int] = {}
+    next_id = 1
+    operador_count = len(OPERADORES)
+
+    for day_offset in range(SESSION_DAYS):
+        sale_date = (REFERENCE_NOW - timedelta(days=day_offset)).date()
+        for caixa_id, _loja_id, _numero in caixas:
+            operador_id = ((caixa_id + day_offset) % operador_count) + 1
+            data_abertura = datetime(
+                sale_date.year,
+                sale_date.month,
+                sale_date.day,
+                8,
+                0,
+                0,
+                tzinfo=timezone.utc,
+            )
+            data_fechamento = datetime(
+                sale_date.year,
+                sale_date.month,
+                sale_date.day,
+                20,
+                0,
+                0,
+                tzinfo=timezone.utc,
+            )
+            sessions.append(
+                (
+                    next_id,
+                    caixa_id,
+                    operador_id,
+                    data_abertura,
+                    data_fechamento,
+                    Decimal("200.00"),
+                    "fechada",
+                )
+            )
+            session_lookup[(caixa_id, sale_date)] = next_id
+            next_id += 1
+
+    return sessions, session_lookup
+
+
+def _resolve_sessao_caixa_id(
+    session_lookup: dict[tuple[int, date], int],
+    caixa_id: int,
+    data_hora: datetime,
+) -> int:
+    sale_date = data_hora.date()
+    sessao_id = session_lookup.get((caixa_id, sale_date))
+    if sessao_id is not None:
+        return sessao_id
+    dates_for_caixa = [d for (cid, d) in session_lookup if cid == caixa_id]
+    nearest = min(dates_for_caixa, key=lambda d: abs((d - sale_date).days))
+    return session_lookup[(caixa_id, nearest)]
+
+
+def _movimentacoes_caixa_rows(
+    sessions: list[tuple],
+) -> list[tuple]:
+    random.seed(SALES_SEED + 1)
+    movimentacoes: list[tuple] = []
+    next_id = 1
+
+    for sessao in sessions:
+        sessao_id, _caixa_id, _operador_id, data_abertura, *_rest = sessao
+        if random.random() >= 0.05:
+            continue
+        tipo = random.choice(("sangria", "suprimento"))
+        valor = Decimal(str(round(20 + random.random() * 180, 2)))
+        data_hora = data_abertura + timedelta(hours=random.randint(1, 10))
+        justificativa = (
+            "Sangria para cofre"
+            if tipo == "sangria"
+            else "Suprimento de troco"
+        )
+        movimentacoes.append(
+            (next_id, sessao_id, tipo, valor, data_hora, justificativa)
+        )
+        next_id += 1
+
+    return movimentacoes
+
+
+def _generate_sales(
+    session_lookup: dict[tuple[int, date], int],
+) -> tuple[list[tuple], list[tuple], list[tuple]]:
+    """Build static vendas, itens_venda and pagamentos_venda with a fixed random seed."""
     random.seed(SALES_SEED)
     caixa_ids = [row[0] for row in _caixas_rows()]
     payment_ids = [row[0] for row in FORMAS_PAGAMENTO]
+    cliente_ids = [row[0] for row in CLIENTES]
     products = [(row[0], row[2], row[4]) for row in _produto_rows()]
 
     vendas: list[tuple] = []
     itens: list[tuple] = []
+    pagamentos: list[tuple] = []
     next_item_id = 1
+    next_pagamento_id = 1
 
     for venda_id in range(1, NUM_SALES + 1):
-        days_back = random.random() * 90
+        days_back = random.random() * SESSION_DAYS
         hour_offset = 8 + random.randint(0, 12)
         minute_offset = random.randint(0, 59)
         data_hora = REFERENCE_NOW - timedelta(
@@ -132,6 +293,20 @@ def _generate_sales() -> tuple[list[tuple], list[tuple]]:
             minutes=minute_offset,
         )
         caixa_id = random.choice(caixa_ids)
+        sale_date = data_hora.date()
+        sessao_caixa_id = _resolve_sessao_caixa_id(session_lookup, caixa_id, data_hora)
+        operador_id = ((caixa_id + sale_date.toordinal()) % len(OPERADORES)) + 1
+
+        if random.random() < 0.15:
+            cliente_id = random.choice(cliente_ids)
+            cpf_cnpj_consumidor = None
+        elif random.random() < 0.08:
+            cliente_id = None
+            cpf_cnpj_consumidor = random.choice(CPF_CONSUMIDOR_AVULSO)
+        else:
+            cliente_id = None
+            cpf_cnpj_consumidor = None
+
         forma_pagamento_id = random.choice(payment_ids)
         desconto = (
             round(Decimal(str(random.random() * 15)), 2)
@@ -163,15 +338,44 @@ def _generate_sales() -> tuple[list[tuple], list[tuple]]:
             (
                 venda_id,
                 data_hora,
-                caixa_id,
-                forma_pagamento_id,
+                sessao_caixa_id,
+                operador_id,
+                cliente_id,
+                cpf_cnpj_consumidor,
                 valor_total,
                 desconto,
                 status,
             )
         )
+        if status == "concluida" and valor_total > 0:
+            pagamentos.append(
+                (
+                    next_pagamento_id,
+                    venda_id,
+                    forma_pagamento_id,
+                    valor_total,
+                )
+            )
+            next_pagamento_id += 1
 
-    return vendas, itens
+    return vendas, itens, pagamentos
+
+
+def _copy_table(
+    conn: duckdb.DuckDBPyConnection,
+    table: str,
+    ddl: str,
+    rows: list[tuple],
+    insert_sql: str,
+    output_dir: Path,
+) -> None:
+    conn.execute(f"DROP TABLE IF EXISTS {table}")
+    conn.execute(ddl)
+    if rows:
+        conn.executemany(insert_sql, rows)
+    conn.execute(
+        f"COPY {table} TO '{output_dir / f'{table}.parquet'}' (FORMAT PARQUET)"
+    )
 
 
 def build_parquet(output_dir: Path | None = None) -> Path:
@@ -179,33 +383,65 @@ def build_parquet(output_dir: Path | None = None) -> Path:
     target = output_dir or DEFAULT_PARQUET_DIR
     target.mkdir(parents=True, exist_ok=True)
 
+    caixas = _caixas_rows()
+    produto_rows = _produto_rows()
+    sessoes, session_lookup = _sessoes_caixa_rows()
+    movimentacoes = _movimentacoes_caixa_rows(sessoes)
+    vendas, itens, pagamentos = _generate_sales(session_lookup)
+
     conn = duckdb.connect()
     try:
-        conn.execute("CREATE TABLE categorias (id INTEGER, nome VARCHAR)")
-        conn.executemany("INSERT INTO categorias VALUES (?, ?)", CATEGORIAS)
-        conn.execute(
-            f"COPY categorias TO '{target / 'categorias.parquet'}' (FORMAT PARQUET)"
+        _copy_table(
+            conn,
+            "categorias",
+            "CREATE TABLE categorias (id INTEGER, nome VARCHAR)",
+            CATEGORIAS,
+            "INSERT INTO categorias VALUES (?, ?)",
+            target,
         )
-
-        conn.execute("CREATE TABLE formas_pagamento (id INTEGER, nome VARCHAR)")
-        conn.executemany("INSERT INTO formas_pagamento VALUES (?, ?)", FORMAS_PAGAMENTO)
-        conn.execute(
-            f"COPY formas_pagamento TO '{target / 'formas_pagamento.parquet'}' (FORMAT PARQUET)"
+        _copy_table(
+            conn,
+            "formas_pagamento",
+            "CREATE TABLE formas_pagamento (id INTEGER, nome VARCHAR)",
+            FORMAS_PAGAMENTO,
+            "INSERT INTO formas_pagamento VALUES (?, ?)",
+            target,
         )
-
-        conn.execute(
-            "CREATE TABLE lojas (id INTEGER, nome VARCHAR, cidade VARCHAR, uf CHAR(2))"
+        _copy_table(
+            conn,
+            "lojas",
+            "CREATE TABLE lojas (id INTEGER, nome VARCHAR, cidade VARCHAR, uf CHAR(2))",
+            LOJAS,
+            "INSERT INTO lojas VALUES (?, ?, ?, ?)",
+            target,
         )
-        conn.executemany("INSERT INTO lojas VALUES (?, ?, ?, ?)", LOJAS)
-        conn.execute(f"COPY lojas TO '{target / 'lojas.parquet'}' (FORMAT PARQUET)")
-
-        caixas = _caixas_rows()
-        conn.execute("CREATE TABLE caixas (id INTEGER, loja_id INTEGER, numero INTEGER)")
-        conn.executemany("INSERT INTO caixas VALUES (?, ?, ?)", caixas)
-        conn.execute(f"COPY caixas TO '{target / 'caixas.parquet'}' (FORMAT PARQUET)")
-
-        produto_rows = _produto_rows()
-        conn.execute(
+        _copy_table(
+            conn,
+            "caixas",
+            "CREATE TABLE caixas (id INTEGER, loja_id INTEGER, numero INTEGER)",
+            caixas,
+            "INSERT INTO caixas VALUES (?, ?, ?)",
+            target,
+        )
+        _copy_table(
+            conn,
+            "operadores",
+            "CREATE TABLE operadores (id INTEGER, nome VARCHAR, matricula VARCHAR, ativo BOOLEAN)",
+            OPERADORES,
+            "INSERT INTO operadores VALUES (?, ?, ?, ?)",
+            target,
+        )
+        _copy_table(
+            conn,
+            "clientes",
+            "CREATE TABLE clientes (id INTEGER, nome VARCHAR, cpf_cnpj VARCHAR, email VARCHAR)",
+            CLIENTES,
+            "INSERT INTO clientes VALUES (?, ?, ?, ?)",
+            target,
+        )
+        _copy_table(
+            conn,
+            "produtos",
             """
             CREATE TABLE produtos (
                 id INTEGER,
@@ -213,36 +449,94 @@ def build_parquet(output_dir: Path | None = None) -> Path:
                 nome VARCHAR,
                 categoria_id INTEGER,
                 preco DECIMAL(10, 2),
-                ativo BOOLEAN
+                ativo BOOLEAN,
+                ncm VARCHAR,
+                cest VARCHAR
             )
-            """
+            """,
+            produto_rows,
+            "INSERT INTO produtos VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            target,
         )
-        conn.executemany("INSERT INTO produtos VALUES (?, ?, ?, ?, ?, ?)", produto_rows)
-        conn.execute(f"COPY produtos TO '{target / 'produtos.parquet'}' (FORMAT PARQUET)")
-
-        vendas, itens = _generate_sales()
-        conn.execute(
+        _copy_table(
+            conn,
+            "sessoes_caixa",
+            """
+            CREATE TABLE sessoes_caixa (
+                id BIGINT,
+                caixa_id INTEGER,
+                operador_id INTEGER,
+                data_abertura TIMESTAMPTZ,
+                data_fechamento TIMESTAMPTZ,
+                valor_abertura DECIMAL(10, 2),
+                status VARCHAR
+            )
+            """,
+            sessoes,
+            """
+            INSERT INTO sessoes_caixa VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            target,
+        )
+        _copy_table(
+            conn,
+            "movimentacoes_caixa",
+            """
+            CREATE TABLE movimentacoes_caixa (
+                id BIGINT,
+                sessao_caixa_id BIGINT,
+                tipo VARCHAR,
+                valor DECIMAL(12, 2),
+                data_hora TIMESTAMPTZ,
+                justificativa VARCHAR
+            )
+            """,
+            movimentacoes,
+            """
+            INSERT INTO movimentacoes_caixa VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            target,
+        )
+        _copy_table(
+            conn,
+            "vendas",
             """
             CREATE TABLE vendas (
                 id BIGINT,
                 data_hora TIMESTAMPTZ,
-                caixa_id INTEGER,
-                forma_pagamento_id INTEGER,
+                sessao_caixa_id BIGINT,
+                operador_id INTEGER,
+                cliente_id INTEGER,
+                cpf_cnpj_consumidor VARCHAR,
                 valor_total DECIMAL(12, 2),
                 desconto DECIMAL(10, 2),
                 status VARCHAR
             )
-            """
-        )
-        conn.executemany(
-            """
-            INSERT INTO vendas VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             vendas,
+            """
+            INSERT INTO vendas VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            target,
         )
-        conn.execute(f"COPY vendas TO '{target / 'vendas.parquet'}' (FORMAT PARQUET)")
-
-        conn.execute(
+        _copy_table(
+            conn,
+            "pagamentos_venda",
+            """
+            CREATE TABLE pagamentos_venda (
+                id BIGINT,
+                venda_id BIGINT,
+                forma_pagamento_id INTEGER,
+                valor_pago DECIMAL(12, 2)
+            )
+            """,
+            pagamentos,
+            "INSERT INTO pagamentos_venda VALUES (?, ?, ?, ?)",
+            target,
+        )
+        _copy_table(
+            conn,
+            "itens_venda",
             """
             CREATE TABLE itens_venda (
                 id BIGINT,
@@ -252,14 +546,10 @@ def build_parquet(output_dir: Path | None = None) -> Path:
                 preco_unitario DECIMAL(10, 2),
                 subtotal DECIMAL(12, 2)
             )
-            """
-        )
-        conn.executemany(
-            "INSERT INTO itens_venda VALUES (?, ?, ?, ?, ?, ?)",
+            """,
             itens,
-        )
-        conn.execute(
-            f"COPY itens_venda TO '{target / 'itens_venda.parquet'}' (FORMAT PARQUET)"
+            "INSERT INTO itens_venda VALUES (?, ?, ?, ?, ?, ?)",
+            target,
         )
     finally:
         conn.close()
