@@ -16,16 +16,31 @@ PARQUET_DIR = REPO_ROOT / "docker" / "duckdb" / "parquet"
 DEFAULT_DB_PATH = REPO_ROOT / "data" / "pdv_ai.duckdb"
 SCHEMA_FILE = "01-schema.sql"
 
+# Load order respects foreign-key dependencies.
 PARQUET_TABLES: tuple[tuple[str, str], ...] = (
     ("categorias", "id, nome"),
     ("formas_pagamento", "id, nome"),
     ("lojas", "id, nome, cidade, uf"),
     ("caixas", "id, loja_id, numero"),
-    ("produtos", "id, codigo_barras, nome, categoria_id, preco, ativo"),
+    ("operadores", "id, nome, matricula, ativo"),
+    ("clientes", "id, nome, cpf_cnpj, email"),
+    (
+        "produtos",
+        "id, codigo_barras, nome, categoria_id, preco, ativo, ncm, cest",
+    ),
+    (
+        "sessoes_caixa",
+        "id, caixa_id, operador_id, data_abertura, data_fechamento, valor_abertura, status",
+    ),
+    (
+        "movimentacoes_caixa",
+        "id, sessao_caixa_id, tipo, valor, data_hora, justificativa",
+    ),
     (
         "vendas",
-        "id, data_hora, caixa_id, forma_pagamento_id, valor_total, desconto, status",
+        "id, data_hora, sessao_caixa_id, operador_id, cliente_id, cpf_cnpj_consumidor, valor_total, desconto, status",
     ),
+    ("pagamentos_venda", "id, venda_id, forma_pagamento_id, valor_pago"),
     (
         "itens_venda",
         "id, venda_id, produto_id, quantidade, preco_unitario, subtotal",
